@@ -1,0 +1,10 @@
+<Project>
+
+	<!--Keeps bin/ and obj/ at the repository root even though the csproj lives in src/.
+	Must live here (not in the csproj) so it's imported before the SDK resolves obj's path.-->
+	<PropertyGroup>
+		<BaseOutputPath>$(MSBuildThisFileDirectory)bin\</BaseOutputPath>
+		<BaseIntermediateOutputPath>$(MSBuildThisFileDirectory)obj\</BaseIntermediateOutputPath>
+	</PropertyGroup>
+
+</Project>
