@@ -29,6 +29,9 @@
 		<Reference Include="Colossal.IO.AssetDatabase">
 			<Private>false</Private>
 		</Reference>
+		<Reference Include="Colossal.PSI.Common">
+			<Private>false</Private>
+		</Reference>
 		<Reference Include="Colossal.UI">
 			<Private>false</Private>
 		</Reference>
@@ -36,6 +39,9 @@
 			<Private>false</Private>
 		</Reference>
 		<Reference Include="Colossal.Localization">
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="Colossal.Mathematics">
 			<Private>false</Private>
 		</Reference>
 		<Reference Include="Unity.InputSystem">
@@ -73,6 +79,11 @@
 	<ItemGroup>
 		<None Include="$(ModPropsFile)" Link="Properties\Mod.props" />
 		<None Include="$(ModTargetsFile)" Link="Properties\Mod.targets" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="embedded\Localization\*.json" />
+		<EmbeddedResource Include="embedded\Themes\*.json" />
 	</ItemGroup>
 
 	<Target Name="BuildUI" BeforeTargets="AfterBuild">

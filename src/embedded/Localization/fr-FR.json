@@ -1,0 +1,36 @@
+{
+    "Options.SECTION[ExtraTheme.ExtraTheme.ET]": "Extra Theme",
+    "Options.GROUP[ExtraTheme.ExtraTheme.ET.Themes]": "Thèmes",
+    "Options.OPTION[ExtraTheme.ExtraTheme.ET.Setting.ReloadThemes]": "Recharger les thèmes",
+    "Options.OPTION_DESCRIPTION[ExtraTheme.ExtraTheme.ET.Setting.ReloadThemes]": "Relit vos fichiers de thème personnalisés sur le disque - utilise ce bouton après en avoir ajouté ou modifié un sans redémarrer le jeu.",
+
+    "ExtraTheme.Theme[Default]": "Défaut",
+    "ExtraTheme.Theme[BrightBlue]": "Bleu vif",
+    "ExtraTheme.Theme[DarkGreyOrange]": "Gris foncé orange",
+
+    "ExtraTheme.Panel.Group[PanelColors]": "Couleurs de panneau",
+    "ExtraTheme.Panel.Group[TextColors]": "Couleurs de texte",
+    "ExtraTheme.Panel.Group[AccentColors]": "Couleurs d'accentuation",
+    "ExtraTheme.Panel.Group[States]": "États",
+    "ExtraTheme.Panel.Group[MenuColors]": "Couleurs de menu",
+
+    "ExtraTheme.Panel.Kind[Color]": "Couleur",
+    "ExtraTheme.Panel.Kind[Unit]": "Unité",
+    "ExtraTheme.Panel.Kind[Number]": "Nombre",
+    "ExtraTheme.Panel.Kind[VarReference]": "Référence",
+    "ExtraTheme.Panel.Kind[Keyword]": "Mot-clé",
+
+    "ExtraTheme.Panel.Export": "Export",
+    "ExtraTheme.Panel.Import": "Import",
+    "ExtraTheme.Panel.Simple": "Simple",
+    "ExtraTheme.Panel.Advanced": "Avancé",
+    "ExtraTheme.Panel.SearchPlaceholder": "Rechercher, ex: panel*Color",
+
+    "ExtraTheme.Panel.ExportTitle": "Exporter le thème",
+    "ExtraTheme.Panel.ImportTitle": "Importer un thème",
+    "ExtraTheme.Panel.Close": "Fermer",
+    "ExtraTheme.Panel.Copy": "Copier",
+    "ExtraTheme.Panel.Cancel": "Annuler",
+    "ExtraTheme.Panel.ImportPlaceholder": "Colle ici le thème exporté (JSON)...",
+    "ExtraTheme.Panel.ImportError": "Texte invalide - ce n'est pas du JSON reconnaissable."
+}
