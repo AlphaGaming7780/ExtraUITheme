@@ -29,12 +29,22 @@
     "ExtraTheme.Panel.SearchPlaceholder": "Search, e.g. panel*Color",
 
     "ExtraTheme.Panel.ExportTitle": "Export theme",
+    "ExtraTheme.Panel.ExportSubtitle": "Theme:",
+    "ExtraTheme.Panel.VariablesCount": "variable(s)",
     "ExtraTheme.Panel.ImportTitle": "Import a theme",
+    "ExtraTheme.Panel.ImportDesc": "Paste the exported theme below.",
+    "ExtraTheme.Panel.ImportDefaultName": "Imported theme",
     "ExtraTheme.Panel.Close": "Close",
     "ExtraTheme.Panel.Copy": "Copy",
     "ExtraTheme.Panel.Cancel": "Cancel",
     "ExtraTheme.Panel.ImportPlaceholder": "Paste the exported theme here (JSON)...",
     "ExtraTheme.Panel.ImportError": "Invalid text - this isn't recognizable JSON.",
+
+    "ExtraTheme.Panel.ImportConflictTitle": "A theme with that name already exists",
+    "ExtraTheme.Panel.ImportConflictDesc": "A theme named",
+    "ExtraTheme.Panel.ImportConflictDesc2": "already exists. What do you want to do?",
+    "ExtraTheme.Panel.ImportConflictNewName": "New name (if you choose Rename)",
+    "ExtraTheme.Panel.Overwrite": "Overwrite",
 
     "ExtraTheme.Panel.Rename": "Rename",
     "ExtraTheme.Panel.RenameTitle": "Rename theme",

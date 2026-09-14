@@ -247,7 +247,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                     {/* Text wrapped in a child <span>, not the <button>'s own direct text node - see
                     .modeToggle button in Toolbar.module.scss for the accented-character reason. */}
                     <button className={toolbarStyles.btn} disabled={!activeTheme || activeTheme.isBuiltIn} onClick={() => setShowRename(true)}><span>{translate("ExtraTheme.Panel.Rename", "Rename")}</span></button>
-                    <button className={toolbarStyles.btn} onClick={() => setShowExport(true)}><span>{translate("ExtraTheme.Panel.Export", "Export")}</span></button>
+                    <button className={toolbarStyles.btn} disabled={!activeTheme} onClick={() => setShowExport(true)}><span>{translate("ExtraTheme.Panel.Export", "Export")}</span></button>
                     <button className={toolbarStyles.btn} onClick={() => setShowImport(true)}><span>{translate("ExtraTheme.Panel.Import", "Import")}</span></button>
                     <button className={toolbarStyles.btn} disabled={!hasUnsavedChanges} onClick={() => trigger("ET", "SaveTheme", true)}><span>{translate("ExtraTheme.Panel.Save", "Save")}</span></button>
                     <label className={toolbarStyles.autoSaveLabel}>
@@ -320,8 +320,12 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                 />
             </div>
 
-            {showExport && <ExportDialog declarations={filtered} onClose={() => setShowExport(false)} />}
-            {showImport && <ImportDialog onClose={() => setShowImport(false)} onImport={(imported) => console.log("[ExtraTheme] Imported declarations", imported)} />}
+            {showExport && activeTheme && (
+                <ExportDialog themeName={activeTheme.name} overrides={activeTheme.overrides} onClose={() => setShowExport(false)} />
+            )}
+            {showImport && (
+                <ImportDialog takenNames={availableThemes.map((t) => t.name)} onClose={() => setShowImport(false)} />
+            )}
             {showRename && activeTheme && (
                 <RenameThemeDialog
                     currentName={activeTheme.name}

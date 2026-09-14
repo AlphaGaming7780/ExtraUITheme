@@ -33,6 +33,10 @@ export const ColorDeclarationRow = (declaration: CssColorDeclaration) => {
     const onChange = (value: Color) => {
         dirtyRef.current = true;
         setColor(value);
+        // Live preview - applied directly as an inline style on <html>, which overrides any
+        // selector's own rule (same mechanism RegisterThemePanel.tsx uses for a committed theme).
+        // Only C# doesn't hear about it until onClosePicker - see the comment above.
+        document.documentElement.style.setProperty(declaration.name, rgba(value.r, value.g, value.b, value.a));
     };
 
     const onClosePicker = () => {

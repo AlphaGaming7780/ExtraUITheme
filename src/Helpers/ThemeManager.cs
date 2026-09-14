@@ -82,7 +82,6 @@ namespace ExtraTheme.Helpers
 
         internal static List<Theme> GetAllThemes()
         {
-            ET.Logger.Info("GetAllThemes");
             List<Theme> themes = LoadBuiltInThemes();
             themes.AddRange(LoadUserThemes());
             return themes;
@@ -141,6 +140,21 @@ namespace ExtraTheme.Helpers
             string name = baseName;
             for (int n = 2; UserThemeExists(name); n++) name = $"{baseName} {n}";
             return name;
+        }
+
+        // False (with `overrides` null) if the JSON doesn't decode to a plain string->string map.
+        internal static bool TryParseOverrides(string json, out Dictionary<string, string> overrides)
+        {
+            try
+            {
+                overrides = Decoder.Decode(json).Make<Dictionary<string, string>>();
+                return overrides != null;
+            }
+            catch
+            {
+                overrides = null;
+                return false;
+            }
         }
 
         private static string SanitizeFileName(string name)

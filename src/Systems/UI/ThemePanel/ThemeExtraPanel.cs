@@ -36,6 +36,19 @@ namespace ExtraTheme.Systems.UI.ThemePanel
             base.OnCreate();
             ET.Logger.Info("ThemeExtraPanel OnCreate");
 
+            // A theme fork's name used to be written to ET.m_Setting.ActiveThemeName (and, via
+            // ApplyAndSave, the settings file on disk) immediately on the first edit - before the
+            // fork itself was ever saved to a theme file. If the game closed before Save/autosave
+            // ran, that name survived on disk with nothing backing it, and every future launch
+            // found no matching theme (SetOverride no longer persists ActiveThemeName this early,
+            // but a settings file written by an older build can still have this). Falls back to
+            // Default rather than leaving the panel pointed at a theme that doesn't exist.
+            if (!ThemeManager.IsBuiltInName(ET.m_Setting.ActiveThemeName) && !ThemeManager.UserThemeExists(ET.m_Setting.ActiveThemeName))
+            {
+                ET.m_Setting.ActiveThemeName = ThemeManager.DefaultThemeName;
+                ET.m_Setting.ApplyAndSave();
+            }
+
             AddBinding(m_CssDeclarationsBinding = new GetterValueBinding<List<CssDeclaration>>("ET", "CssDeclarations", CssVariableExtractor.ExtractAll, new ListWriter<CssDeclaration>()));
             AddBinding(m_AvailableThemesBinding = new GetterValueBinding<List<Theme>>("ET", "AvailableThemes", GetAvailableThemes, new ListWriter<Theme>()));
             AddBinding(m_ActiveThemeNameBinding = new GetterValueBinding<string>("ET", "ActiveThemeName", () => ET.m_Setting.ActiveThemeName));
@@ -43,9 +56,10 @@ namespace ExtraTheme.Systems.UI.ThemePanel
             AddBinding(m_HasUnsavedChangesBinding = new GetterValueBinding<bool>("ET", "HasUnsavedChanges", () => m_PendingOverrides != null));
             AddBinding(new TriggerBinding<string>("ET", "SelectTheme", SelectTheme));
             AddBinding(new TriggerBinding<string>("ET", "RenameTheme", RenameTheme));
+            AddBinding(new TriggerBinding<string, string, bool>("ET", "ImportTheme", ImportTheme));
             AddBinding(new TriggerBinding<string, string>("ET", "SetOverride", SetOverride));
             AddBinding(new TriggerBinding<bool>("ET", "SetAutoSave", SetAutoSave));
-            AddBinding(new TriggerBinding<bool>("ET", "SaveTheme", _ => SaveTheme()));
+            AddBinding(new TriggerBinding("ET", "SaveTheme", SaveTheme));
 
             SetPanelSize(new float2(640, 520));
         }
@@ -111,6 +125,31 @@ namespace ExtraTheme.Systems.UI.ThemePanel
             m_AvailableThemesBinding.Update();
         }
 
+        // Creates (or, with overwrite, replaces) a user theme from imported JSON (a plain
+        // {"--var": "value", ...} map, see ExportImportDialogs.tsx) and switches to it. Refuses a
+        // built-in name always; refuses an already-taken name unless overwrite is set (the conflict
+        // dialog - ImportConflictDialog - is what sets it, after the user explicitly chose
+        // "Overwrite" over "Rename"). Discards any unsaved pending edits on whatever theme was
+        // active before, same as SelectTheme.
+        private void ImportTheme(string name, string overridesJson, bool overwrite)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return;
+            if (ThemeManager.IsBuiltInName(name)) return;
+            if (!overwrite && ThemeManager.UserThemeExists(name)) return;
+            if (!ThemeManager.TryParseOverrides(overridesJson, out Dictionary<string, string> overrides)) return;
+
+            m_PendingOverrides = null;
+            m_PendingThemeName = null;
+
+            ThemeManager.SaveUserTheme(name, overrides);
+
+            ET.m_Setting.ActiveThemeName = name;
+            ET.m_Setting.ApplyAndSave();
+            m_ActiveThemeNameBinding.Update();
+            m_AvailableThemesBinding.Update();
+            m_HasUnsavedChangesBinding.Update();
+        }
+
         // Applies one CSS variable's override to the active theme in memory (visible immediately -
         // RegisterThemePanel.tsx applies AvailableThemes/ActiveThemeName live), forking a built-in
         // theme into a new (not-yet-saved) user theme name first since built-ins are read-only. Only
@@ -126,8 +165,11 @@ namespace ExtraTheme.Systems.UI.ThemePanel
             if (m_PendingThemeName == null && (active?.IsBuiltIn ?? false))
             {
                 themeName = ThemeManager.GenerateForkName(active.Name);
+                // In-memory only, not ApplyAndSave'd yet - this name has no theme file behind it
+                // until SaveTheme() actually writes one (autosave or the Save button). Persisting it
+                // to the settings file this early would leave a dangling reference on disk if the
+                // game closes first (see the OnCreate comment above).
                 ET.m_Setting.ActiveThemeName = themeName;
-                ET.m_Setting.ApplyAndSave();
                 m_ActiveThemeNameBinding.Update();
             }
 
@@ -144,6 +186,7 @@ namespace ExtraTheme.Systems.UI.ThemePanel
                 m_AvailableThemesBinding.Update();
                 m_HasUnsavedChangesBinding.Update();
             }
+            ET.Logger.Info($"SetOverride: variable=\"{variableName}\", value=\"{rawValue}\", theme=\"{themeName}\".");
         }
 
         private void SetAutoSave(bool value)
@@ -160,6 +203,10 @@ namespace ExtraTheme.Systems.UI.ThemePanel
             ThemeManager.SaveUserTheme(m_PendingThemeName, m_PendingOverrides);
             m_PendingOverrides = null;
             m_PendingThemeName = null;
+
+            // A fork's ActiveThemeName is only set in memory (see SetOverride) until this point -
+            // now that a real file backs it, it's safe to persist.
+            ET.m_Setting.ApplyAndSave();
 
             m_AvailableThemesBinding.Update();
             m_HasUnsavedChangesBinding.Update();

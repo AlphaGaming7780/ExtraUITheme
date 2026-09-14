@@ -1,13 +1,123 @@
-// Dialog (game-ui/common/panel/dialog/dialog.tsx) renders `buttons` with no wrapping/gap of its own.
 .dialogButtons {
     display: flex;
     column-gap: 10rem;
 }
 
+// Export's footer: a hint on the left, the button pair on the right - Dialog's `buttons` prop is
+// the whole footer row, no built-in gap/split of its own.
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 10rem;
+    width: 100%;
+}
+
+.hint {
+    font-size: var(--fontSizeXS);
+    color: var(--textColorDim);
+}
+
+.subtitleRow {
+    display: flex;
+    align-items: center;
+    column-gap: var(--gap2);
+    // width:100% - without it this shrinks to fit its content and centers inside Dialog's own body
+    // layout instead of sitting flush left (the same reason .exportTextarea/.importNameInput below
+    // set it too).
+    width: 100%;
+    font-size: var(--fontSizeS);
+    color: var(--textColorDim);
+    margin-bottom: var(--gap2);
+}
+
+.themeBadge {
+    display: inline-flex;
+    align-items: center;
+    column-gap: 5rem;
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-radius: 999rem;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    padding-left: 10rem;
+    padding-right: 10rem;
+    font-size: var(--fontSizeXS);
+    font-weight: 600;
+    color: var(--normalTextColor);
+}
+
+.themeDot {
+    width: 6rem;
+    height: 6rem;
+    border-radius: 999rem;
+    background-color: var(--accentColorNormal);
+    flex: 0 0 auto;
+}
+
+.desc {
+    width: 100%;
+    font-size: var(--fontSizeS);
+    color: var(--textColorDim);
+    line-height: 1.5;
+    margin-bottom: var(--gap2);
+}
+
+// Not a <strong> tag - cohtml doesn't treat it as inline by default (confirmed in-game: it forced a
+// line break before/after, stacking "before text" / "strong text" / "after text" on separate lines
+// instead of flowing as one sentence). A <span> with explicit display:inline sidesteps that.
+.descStrong {
+    display: inline;
+    font-weight: 700;
+    color: var(--normalTextColor);
+}
+
+.fieldLabel {
+    width: 100%;
+    font-size: var(--fontSizeXS);
+    color: var(--textColorDim);
+    font-weight: 600;
+    margin-bottom: 5rem;
+}
+
+.importNameInput {
+    box-sizing: border-box;
+    width: 100%;
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    color: var(--normalTextColor);
+    font-size: var(--fontSizeS);
+    // Not `inherit` - see ThemeExtraPanel.module.scss for why.
+    font-family: var(--fontFamily);
+    padding-top: var(--gap2);
+    padding-right: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap2);
+}
+
+.textareaWrapper {
+    position: relative;
+    width: 100%;
+}
+
 .exportTextarea {
     box-sizing: border-box;
     width: 100%;
-    height: 130rem;
+    height: 280rem;
     resize: none;
     background: rgba(10, 15, 24, 0.5);
     border-width: 1rem;
@@ -23,10 +133,26 @@
     color: var(--normalTextColor);
     font-family: ui-monospace, "SF Mono", Consolas, monospace;
     font-size: var(--fontSizeXS);
+    line-height: 1.5;
     padding-top: var(--gap2);
     padding-right: var(--gap2);
     padding-bottom: var(--gap2);
     padding-left: var(--gap2);
+    margin-bottom: var(--gap2);
+}
+
+// Overlay placeholder, not the native `placeholder` attribute - `::placeholder` is unsupported in
+// this engine (no way to color it). Same technique as SearchBar.module.scss's
+// .searchInputPlaceholder; pointer-events:none so clicks reach the real textarea underneath.
+.textareaPlaceholder {
+    position: absolute;
+    left: var(--gap2);
+    top: var(--gap2);
+    right: var(--gap2);
+    color: var(--textColorDim);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-size: var(--fontSizeXS);
+    pointer-events: none;
 }
 
 .importError {
