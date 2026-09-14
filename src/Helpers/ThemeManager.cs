@@ -88,13 +88,18 @@ namespace ExtraTheme.Helpers
             return themes;
         }
 
+        internal static bool IsBuiltInName(string name) => name == DefaultThemeName || BuiltInPresetNames.Contains(name);
+
+        internal static bool UserThemeExists(string name) =>
+            File.Exists(Path.Combine(UserThemesFolder, SanitizeFileName(name) + ".json"));
+
         // Returns false (without writing) if `name` collides with a built-in theme - the caller is
         // responsible for the Écraser/Renommer/Annuler conflict prompt for an existing user theme
         // (design doc), this only guards the built-in names which must never be shadowed.
         internal static bool SaveUserTheme(string name, Dictionary<string, string> overrides)
         {
             if (string.IsNullOrWhiteSpace(name)) return false;
-            if (name == DefaultThemeName || BuiltInPresetNames.Contains(name)) return false;
+            if (IsBuiltInName(name)) return false;
 
             if (!Directory.Exists(UserThemesFolder)) Directory.CreateDirectory(UserThemesFolder);
 
@@ -107,6 +112,35 @@ namespace ExtraTheme.Helpers
         {
             string path = Path.Combine(UserThemesFolder, SanitizeFileName(name) + ".json");
             if (File.Exists(path)) File.Delete(path);
+        }
+
+        // False (without writing) if newName is a built-in name, already taken by another user
+        // theme, or oldName has no file on disk (a still-unsaved forked theme - the caller handles
+        // that case itself, see ThemeExtraPanel.RenameTheme).
+        internal static bool RenameUserTheme(string oldName, string newName)
+        {
+            if (string.IsNullOrWhiteSpace(newName)) return false;
+            if (IsBuiltInName(newName)) return false;
+            if (UserThemeExists(newName)) return false;
+
+            string oldPath = Path.Combine(UserThemesFolder, SanitizeFileName(oldName) + ".json");
+            if (!File.Exists(oldPath)) return false;
+
+            string newPath = Path.Combine(UserThemesFolder, SanitizeFileName(newName) + ".json");
+            File.Move(oldPath, newPath);
+            return true;
+        }
+
+        // Editing a value while a built-in theme is active forks it into a new user theme first
+        // (built-ins are read-only) - "<sourceName> (copy)", "<sourceName> (copy 2)", ... until a
+        // free name is found. Only picks the name, doesn't write anything - the caller decides
+        // whether/when to persist (see ThemeExtraPanel's pending-save state).
+        internal static string GenerateForkName(string sourceName)
+        {
+            string baseName = $"{sourceName} (copy)";
+            string name = baseName;
+            for (int n = 2; UserThemeExists(name); n++) name = $"{baseName} {n}";
+            return name;
         }
 
         private static string SanitizeFileName(string name)

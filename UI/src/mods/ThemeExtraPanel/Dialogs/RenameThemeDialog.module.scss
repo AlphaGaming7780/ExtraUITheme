@@ -1,0 +1,35 @@
+// Dialog (game-ui/common/panel/dialog/dialog.tsx) renders `buttons` with no wrapping/gap of its own.
+.dialogButtons {
+    display: flex;
+    column-gap: 10rem;
+}
+
+.renameInput {
+    box-sizing: border-box;
+    width: 100%;
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    color: var(--normalTextColor);
+    font-size: var(--fontSizeS);
+    // Not `inherit` - see ThemeExtraPanel.module.scss for why.
+    font-family: var(--fontFamily);
+    padding-top: var(--gap2);
+    padding-right: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap2);
+}
+
+.renameError {
+    color: var(--negativeColor);
+    font-size: var(--fontSizeS);
+    margin-top: var(--gap2);
+}

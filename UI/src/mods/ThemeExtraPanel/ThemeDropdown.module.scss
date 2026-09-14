@@ -1,0 +1,83 @@
+// Longhand per-side/per-corner properties throughout - see ThemeExtraPanel.module.scss for why.
+
+// Layout only - the actual visual chrome lives in the classes below, since Dropdown doesn't accept
+// a className of its own.
+.themeSelect {
+    flex: 1;
+}
+
+// Custom theme for Dropdown/DropdownToggle/DropdownItem (see dropdownTheme in ThemeExtraPanel.tsx),
+// reading the same panel-relative vars as the rest of this panel - not
+// game-ui/game/themes/game-dropdown.module.scss, whose colors are hardcoded rather than
+// panel-relative.
+.dropdownToggle {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    background-color: var(--sectionBackgroundColor);
+    color: var(--normalTextColor);
+    --iconColor: var(--normalTextColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    padding-top: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap3);
+    padding-right: var(--gap3);
+    font-size: var(--fontSizeS);
+}
+
+.dropdownIndicator {
+    width: 1em;
+    height: 1em;
+    margin-left: var(--gap2);
+}
+
+// The element actually appended to document.body by Dropdown's portal (AnchoredPopup renders
+// <div className={dropdownPopup}>, with dropdownMenu nested inside it as content) - z-index has to
+// live HERE, not on dropdownMenu, since it can't reach past an ancestor with no z-index of its own.
+// ExtraPanel has z-index:10 (ExtraLib), which otherwise paints over the popup despite it being later
+// in the DOM.
+.dropdownPopup {
+    z-index: 1000;
+    pointer-events: auto;
+}
+
+.dropdownMenu {
+    // --sectionBackgroundColor is meant to sit inside an already-opaque panel, so it's fairly
+    // transparent by design - this box instead floats over the 3D game world with nothing opaque
+    // behind it. --panelColorDark (same tone the game's own Panel theme uses for header/footer)
+    // keeps it opaque and visually consistent with the rest of the panel.
+    background-color: var(--panelColorDark);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    font-size: var(--fontSizeS);
+    max-height: 300rem;
+    overflow-y: auto;
+}
+
+.dropdownItem {
+    padding-top: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap3);
+    padding-right: var(--gap3);
+    color: var(--normalTextColor);
+}
+.dropdownItem:hover {
+    background-color: var(--hoverColor);
+}

@@ -1,0 +1,78 @@
+.varRow {
+    display: flex;
+    align-items: center;
+    row-gap: var(--gap2);
+    column-gap: var(--gap2);
+    padding-top: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap3);
+    padding-right: var(--gap3);
+    border-bottom-width: 1rem;
+    border-bottom-style: solid;
+    border-bottom-color: var(--dividerColor);
+    font-size: var(--fontSizeS);
+}
+.varRow:last-child {
+    border-bottom: none;
+}
+
+// The color picker popup (opened from ColorField below) has no z-index of its own to hook into
+// from our own props - ColorField's internal AnchoredPopup call doesn't forward a className, unlike
+// Dropdown's (see ThemeDropdown.module.scss's .dropdownPopup for that version of this fix). Targets
+// the game's own compiled class name directly instead - tied to this exact game version's hash
+// (color-picker-container_Sj5, from game-ui/common/input/color-picker/color-field), re-check this
+// selector if it stops working after a game update. Without it our panel's own z-index:10
+// (ExtraLib's ExtraPanel) paints over the popup.
+:global(.color-picker-container_Sj5) {
+    position: relative;
+    z-index: 1000;
+}
+
+// ColorField renders its own swatch button at a fixed native size (40x20rem, from the game's own
+// color-field.module.scss) - not resized here, just kept from stretching/shrinking in the flex row.
+.swatch {
+    flex: 0 0 auto;
+}
+
+.colorControl {
+    display: flex;
+    align-items: center;
+    column-gap: var(--gap2);
+    flex: 0 0 auto;
+}
+
+.varLabel {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+}
+
+.varValue {
+    font-size: var(--fontSizeXS);
+    color: var(--textColorDim);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    flex: 0 0 auto;
+}
+
+.valUnit {
+    font-size: var(--fontSizeXS);
+    color: var(--normalTextColor);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 5rem;
+    padding: 1rem 5rem;
+    flex: 0 0 auto;
+}
+
+.valRef, .valKeyword {
+    font-size: var(--fontSizeXS);
+    color: var(--textColorDim);
+    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    max-width: 120rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 0 0 auto;
+}

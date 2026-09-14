@@ -22,6 +22,8 @@
 
     "ExtraTheme.Panel.Export": "Export",
     "ExtraTheme.Panel.Import": "Import",
+    "ExtraTheme.Panel.Save": "Sauvegarder",
+    "ExtraTheme.Panel.AutoSave": "Sauvegarde auto",
     "ExtraTheme.Panel.Simple": "Simple",
     "ExtraTheme.Panel.Advanced": "Avancé",
     "ExtraTheme.Panel.SearchPlaceholder": "Rechercher, ex: panel*Color",
@@ -32,5 +34,10 @@
     "ExtraTheme.Panel.Copy": "Copier",
     "ExtraTheme.Panel.Cancel": "Annuler",
     "ExtraTheme.Panel.ImportPlaceholder": "Colle ici le thème exporté (JSON)...",
-    "ExtraTheme.Panel.ImportError": "Texte invalide - ce n'est pas du JSON reconnaissable."
+    "ExtraTheme.Panel.ImportError": "Texte invalide - ce n'est pas du JSON reconnaissable.",
+
+    "ExtraTheme.Panel.Rename": "Renommer",
+    "ExtraTheme.Panel.RenameTitle": "Renommer le thème",
+    "ExtraTheme.Panel.RenameEmpty": "Entre un nom.",
+    "ExtraTheme.Panel.RenameTaken": "Un thème avec ce nom existe déjà."
 }

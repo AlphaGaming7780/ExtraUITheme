@@ -4,8 +4,7 @@
 //
 // NOT anchored to the whole string (no `^`/`$`) - "panel*color" must match "panelColorNormal" (the
 // documented example), which only works as a substring search: "Color" sits in the MIDDLE of
-// "panelColorNormal", not at the end, so an anchored `^panel.*color$` would never match it (the
-// string doesn't end in "color", it ends in "Normal"). Anchoring was the original bug.
+// "panelColorNormal", not at the end, so an anchored `^panel.*color$` would never match it.
 //
 // A pattern starting with "regex:" (case-insensitive) skips glob translation entirely and uses the
 // rest as a real, user-supplied regex (case-insensitive) - an invalid regex just matches nothing

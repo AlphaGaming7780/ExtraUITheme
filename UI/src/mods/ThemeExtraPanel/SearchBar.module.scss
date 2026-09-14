@@ -1,0 +1,46 @@
+// Longhand per-side/per-corner properties throughout - see ThemeExtraPanel.module.scss for why.
+
+.searchInputWrapper {
+    position: relative;
+    width: 100%;
+}
+
+.searchInput {
+    width: 100%;
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    color: var(--normalTextColor);
+    font-size: var(--fontSizeS);
+    padding-top: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap3);
+    padding-right: var(--gap3);
+    // Not `inherit` - see .modeToggle button in Toolbar.module.scss for why.
+    font-family: var(--fontFamily);
+}
+
+// Overlay placeholder, not the native `placeholder` attribute - `::placeholder` is unsupported in
+// this engine (no way to color it). Positioned to line up with .searchInput's own padding;
+// pointer-events:none so clicks reach the real input underneath.
+.searchInputPlaceholder {
+    position: absolute;
+    left: var(--gap3);
+    right: var(--gap3);
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--textColorDim);
+    font-size: var(--fontSizeS);
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

@@ -20,6 +20,16 @@ namespace ExtraTheme.Systems.UI.ThemePanel
         private GetterValueBinding<List<CssDeclaration>> m_CssDeclarationsBinding;
         private GetterValueBinding<List<Theme>> m_AvailableThemesBinding;
         private GetterValueBinding<string> m_ActiveThemeNameBinding;
+        private GetterValueBinding<bool> m_AutoSaveBinding;
+        private GetterValueBinding<bool> m_HasUnsavedChangesBinding;
+
+        // Edits (SetOverride) apply to this in-memory copy immediately, but only reach disk when
+        // autosave is on or Save is triggered - see SetOverride/SaveTheme. Null when there's nothing
+        // unsaved. m_PendingThemeName may name a theme that doesn't exist as a file yet at all (a
+        // freshly-forked built-in), not just an edited existing user theme.
+        private Dictionary<string, string> m_PendingOverrides;
+        private string m_PendingThemeName;
+        private bool m_AutoSave = false;
 
         protected override void OnCreate()
         {
@@ -27,18 +37,132 @@ namespace ExtraTheme.Systems.UI.ThemePanel
             ET.Logger.Info("ThemeExtraPanel OnCreate");
 
             AddBinding(m_CssDeclarationsBinding = new GetterValueBinding<List<CssDeclaration>>("ET", "CssDeclarations", CssVariableExtractor.ExtractAll, new ListWriter<CssDeclaration>()));
-            AddBinding(m_AvailableThemesBinding = new GetterValueBinding<List<Theme>>("ET", "AvailableThemes", ThemeManager.GetAllThemes, new ListWriter<Theme>()));
+            AddBinding(m_AvailableThemesBinding = new GetterValueBinding<List<Theme>>("ET", "AvailableThemes", GetAvailableThemes, new ListWriter<Theme>()));
             AddBinding(m_ActiveThemeNameBinding = new GetterValueBinding<string>("ET", "ActiveThemeName", () => ET.m_Setting.ActiveThemeName));
+            AddBinding(m_AutoSaveBinding = new GetterValueBinding<bool>("ET", "AutoSave", () => m_AutoSave));
+            AddBinding(m_HasUnsavedChangesBinding = new GetterValueBinding<bool>("ET", "HasUnsavedChanges", () => m_PendingOverrides != null));
             AddBinding(new TriggerBinding<string>("ET", "SelectTheme", SelectTheme));
+            AddBinding(new TriggerBinding<string>("ET", "RenameTheme", RenameTheme));
+            AddBinding(new TriggerBinding<string, string>("ET", "SetOverride", SetOverride));
+            AddBinding(new TriggerBinding<bool>("ET", "SetAutoSave", SetAutoSave));
+            AddBinding(new TriggerBinding<bool>("ET", "SaveTheme", _ => SaveTheme()));
 
             SetPanelSize(new float2(640, 520));
         }
 
+        // Patches in m_PendingOverrides over the disk-backed theme list, so the UI sees unsaved
+        // edits without them having been written to disk yet - GetAllThemes() itself always reflects
+        // only what's actually on disk.
+        private List<Theme> GetAvailableThemes()
+        {
+            List<Theme> themes = ThemeManager.GetAllThemes();
+            if (m_PendingOverrides == null) return themes;
+
+            Theme pendingTheme = themes.FirstOrDefault(t => t.Name == m_PendingThemeName);
+            if (pendingTheme != null)
+            {
+                pendingTheme.Overrides = m_PendingOverrides;
+            }
+            else
+            {
+                // A freshly-forked theme not saved to disk at all yet.
+                themes.Add(new Theme { Name = m_PendingThemeName, IsBuiltIn = false, Overrides = m_PendingOverrides });
+            }
+            return themes;
+        }
+
         private void SelectTheme(string name)
         {
+            // Switching theme discards any unsaved edits on the one being left - there's no
+            // multi-theme pending-edit tracking, just a single slot for whichever theme was last
+            // touched.
+            m_PendingOverrides = null;
+            m_PendingThemeName = null;
+            m_HasUnsavedChangesBinding.Update();
+
             ET.m_Setting.ActiveThemeName = name;
             ET.m_Setting.ApplyAndSave();
             m_ActiveThemeNameBinding.Update();
+        }
+
+        // Renames the active theme - refuses built-ins, empty names, and collisions with another
+        // theme (ThemeManager.RenameUserTheme). A still-unsaved forked theme (m_PendingThemeName set,
+        // no file on disk yet) just gets its in-memory name updated instead of touching disk at all.
+        private void RenameTheme(string newName)
+        {
+            if (string.IsNullOrWhiteSpace(newName)) return;
+            string oldName = ET.m_Setting.ActiveThemeName;
+            if (newName == oldName) return;
+            if (ThemeManager.IsBuiltInName(newName) || ThemeManager.UserThemeExists(newName)) return;
+
+            bool unsavedFork = m_PendingThemeName == oldName && !ThemeManager.UserThemeExists(oldName);
+            if (!unsavedFork)
+            {
+                Theme active = ThemeManager.GetAllThemes().FirstOrDefault(t => t.Name == oldName);
+                if (active == null || active.IsBuiltIn) return;
+                if (!ThemeManager.RenameUserTheme(oldName, newName)) return;
+            }
+
+            if (m_PendingThemeName == oldName) m_PendingThemeName = newName;
+
+            ET.m_Setting.ActiveThemeName = newName;
+            ET.m_Setting.ApplyAndSave();
+            m_ActiveThemeNameBinding.Update();
+            m_AvailableThemesBinding.Update();
+        }
+
+        // Applies one CSS variable's override to the active theme in memory (visible immediately -
+        // RegisterThemePanel.tsx applies AvailableThemes/ActiveThemeName live), forking a built-in
+        // theme into a new (not-yet-saved) user theme name first since built-ins are read-only. Only
+        // reaches disk if autosave is on or the user hits Save (SaveTheme).
+        private void SetOverride(string variableName, string rawValue)
+        {
+            string themeName = m_PendingThemeName ?? ET.m_Setting.ActiveThemeName;
+            Theme active = ThemeManager.GetAllThemes().FirstOrDefault(t => t.Name == themeName);
+
+            Dictionary<string, string> overrides = new Dictionary<string, string>(
+                m_PendingOverrides ?? active?.Overrides ?? new Dictionary<string, string>());
+
+            if (m_PendingThemeName == null && (active?.IsBuiltIn ?? false))
+            {
+                themeName = ThemeManager.GenerateForkName(active.Name);
+                ET.m_Setting.ActiveThemeName = themeName;
+                ET.m_Setting.ApplyAndSave();
+                m_ActiveThemeNameBinding.Update();
+            }
+
+            overrides[variableName] = rawValue;
+            m_PendingOverrides = overrides;
+            m_PendingThemeName = themeName;
+
+            if (m_AutoSave)
+            {
+                SaveTheme();
+            }
+            else
+            {
+                m_AvailableThemesBinding.Update();
+                m_HasUnsavedChangesBinding.Update();
+            }
+        }
+
+        private void SetAutoSave(bool value)
+        {
+            m_AutoSave = value;
+            m_AutoSaveBinding.Update();
+            if (value) SaveTheme();
+        }
+
+        private void SaveTheme()
+        {
+            if (m_PendingOverrides == null || m_PendingThemeName == null) return;
+
+            ThemeManager.SaveUserTheme(m_PendingThemeName, m_PendingOverrides);
+            m_PendingOverrides = null;
+            m_PendingThemeName = null;
+
+            m_AvailableThemesBinding.Update();
+            m_HasUnsavedChangesBinding.Update();
         }
 
         // ThemeManager.GetAllThemes() already re-reads every file from disk on every call (no

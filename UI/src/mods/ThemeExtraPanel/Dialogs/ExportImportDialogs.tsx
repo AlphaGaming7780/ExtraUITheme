@@ -1,23 +1,16 @@
 import { useState } from "react";
 import classNames from "classnames";
 import { useLocalization } from "cs2/l10n";
-import { Dialog } from "../../../game-ui/common/panel/dialog/dialog";
-import { Button } from "../../../game-ui/common/input/button/button";
-import { DialogButtonSCSS } from "../../../game-ui/common/input/button/themes/dialog-button.module.scss";
-import { CssDeclaration } from "./CssDeclarationTypes";
-import styles from "./ThemeExtraPanel.module.scss";
+import { Dialog } from "../../../../game-ui/common/panel/dialog/dialog";
+import { Button } from "../../../../game-ui/common/input/button/button";
+import { DialogButtonSCSS } from "../../../../game-ui/common/input/button/themes/dialog-button.module.scss";
+import { CssDeclaration } from "../DeclarationRow/CssDeclarationTypes";
+import styles from "./ExportImportDialogs.module.scss";
 
-// Exports/imports the raw declaration list as-is for now - there's no theme/preset diffing system
-// yet (see docs/ThemePanel-Design.md's "Système de thèmes" section, not implemented), so this is
-// only the transport mechanism (JSON <-> clipboard/textarea), not the real "export a theme"
-// feature.
-//
-// Plain JSON, not base64: an earlier version ran the JSON through
-// `btoa(unescape(encodeURIComponent(json)))` to get a compact base64 blob, but `escape`/`unescape`
-// are legacy globals not used anywhere else in this codebase (or any sibling mod) - opening the
-// Export dialog crashed the whole UI in-game, consistent with cohtml 2.2.1.3's JS engine not
-// implementing them. JSON.stringify/parse are proven safe already (the same shape is already
-// marshalled through Colossal.UI.Binding every frame), so there's no upside to the extra encoding.
+// Transports the raw declaration list as JSON, not base64 - escape/unescape (needed for
+// btoa(unescape(encodeURIComponent(...)))) aren't implemented in cohtml's JS runtime and crash the
+// whole UI if used. There's no theme/preset diffing system yet, so this isn't a real "export a
+// theme" feature yet either, just the transport mechanism.
 function encodeThemePayload(declarations: CssDeclaration[]): string {
     return JSON.stringify(declarations);
 }

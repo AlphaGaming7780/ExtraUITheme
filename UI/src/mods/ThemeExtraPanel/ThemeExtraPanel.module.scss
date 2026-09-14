@@ -1,21 +1,12 @@
-// IMPORTANT (cohtml 2.2.1.3 limitation, confirmed in-game): a shorthand CSS property (background,
-// border, border-color, border-radius, padding, margin, gap, ...) that contains a var()/calc()
-// anywhere in its value is silently rejected ("Custom CSS expressions are not supported in
-// shorthand declaration") - the whole declaration is dropped, not just clamped/ignored-per-side.
-// Every such property below is fully exploded into its per-side/per-corner longhand instead
-// (background -> background-color; border-color -> border-{top,right,bottom,left}-color;
-// border-radius -> border-{top-left,top-right,bottom-right,bottom-left}-radius; padding/margin ->
-// padding-*/margin-* per side; gap -> row-gap + column-gap). A shorthand with ONLY literal values
-// (no CSS variable) is fine as-is (e.g. `border-width: 1rem`, `border-style: solid`).
-// `::placeholder` is also unsupported (dropped, cosmetic only) and `display: inline-block` isn't
-// parsed at all - masonry items just use the default `display: block`, which works fine as a
-// column-layout child.
-//
-// Also confirmed in-game: `var(--name, fallback)` (the two-argument form) is NOT supported either -
-// the comma breaks name parsing entirely ("Unable to resolve custom variable: sectionBorderColor,
-// rgba(56,72,104,0.7" - it tries to look up everything after the comma as part of the name). Only
-// the single-argument `var(--name)` works. Since every variable used here is a real game variable
-// (confirmed present in the extracted index.css), there's no functional loss in dropping fallbacks.
+// cohtml 2.2.1.3 doesn't support shorthand properties (background, border, border-radius, padding,
+// margin, gap...) containing var()/calc() - the whole declaration is silently dropped. Every
+// shorthand below (and in the sibling .module.scss files for this panel) is exploded into its
+// longhand per-side/per-corner form instead. A shorthand with only literal values is fine as-is.
+// var(--name, fallback) (the two-argument form) isn't supported either - only var(--name) works.
+// Generic `cursor` keywords (pointer, grab, ...) are also no-ops - only `cursor: url(cursor://name)`
+// with a name the engine actually registers works (see index.css's own cursor:url() rules for the
+// full list, all game-tool cursors - bulldoze, curve, resize handles - no plain hand/pointer exists).
+// So clickable elements here just don't set `cursor` at all.
 
 .themeExtraPanelContent {
     display: flex;
@@ -30,9 +21,8 @@
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    // --gap2 is only 2-4px depending on resolution - fine for tight inline spacing (icon-to-text)
-    // but far too small to separate whole toolbar rows from each other, which is why they read as
-    // stuck together. --gap4 is the section-level gap here.
+    // --gap2 (2-4px) is fine for tight inline spacing but too small to separate whole toolbar rows -
+    // --gap4 is the section-level gap here.
     row-gap: var(--gap4);
     column-gap: var(--gap4);
     padding-top: var(--gap3);
@@ -51,242 +41,8 @@
     column-gap: var(--gap2);
 }
 
-// Layout only - the actual dropdown theme below (dropdownToggle etc.) handles the visual chrome,
-// since Dropdown doesn't accept a className of its own.
-.themeSelect {
-    flex: 1;
-}
-
-// Our own theme for Dropdown/DropdownToggle/DropdownItem (see the dropdownTheme object in
-// ThemeExtraPanel.tsx), reading the same panel-relative vars as the rest of this panel - NOT
-// game-ui/game/themes/game-dropdown.module.scss, whose colors are hardcoded (#0f1013 background
-// etc.) rather than panel-relative, so it looked black/grey against our panel's own background.
-.dropdownToggle {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    background-color: var(--sectionBackgroundColor);
-    color: var(--normalTextColor);
-    --iconColor: var(--normalTextColor);
-    border-width: 1rem;
-    border-style: solid;
-    border-top-color: var(--sectionBorderColor);
-    border-right-color: var(--sectionBorderColor);
-    border-bottom-color: var(--sectionBorderColor);
-    border-left-color: var(--sectionBorderColor);
-    border-top-left-radius: var(--panelRadiusInner);
-    border-top-right-radius: var(--panelRadiusInner);
-    border-bottom-right-radius: var(--panelRadiusInner);
-    border-bottom-left-radius: var(--panelRadiusInner);
-    padding-top: var(--gap2);
-    padding-bottom: var(--gap2);
-    padding-left: var(--gap3);
-    padding-right: var(--gap3);
-    font-size: var(--fontSizeS);
-    cursor: pointer;
-}
-
-.dropdownIndicator {
-    width: 1em;
-    height: 1em;
-    margin-left: var(--gap2);
-}
-
-// This is the element actually appended to document.body by Dropdown's portal (verified directly
-// in the game's own index.js: AnchoredPopup renders <div className={dropdownPopup}> as the portaled
-// element, with the dropdownMenu-classed div nested INSIDE it as content) - z-index has to live
-// HERE, not on dropdownMenu, or it has no effect since z-index can't reach past an ancestor that
-// doesn't itself have one. ExtraPanel has z-index:10 (ExtraLib/.../ExtraPanel.module.scss), which
-// otherwise painted over the popup despite the popup being later in the DOM.
-.dropdownPopup {
-    z-index: 1000;
-    pointer-events: auto;
-}
-
-.dropdownMenu {
-    // --sectionBackgroundColor is meant to sit INSIDE an already-opaque panel, so it's fairly
-    // transparent by design - fine for rows inside our own content area, but this box floats over
-    // the 3D game world with nothing opaque behind it, so that transparency reads as a visible
-    // (and ugly) see-through panel. --panelColorDark is the same solid tone the game's own Panel
-    // theme already uses for its header/footer (see game-ui/common/panel/themes/default.module.scss)
-    // - reusing it here keeps the popup opaque and visually consistent with the rest of the panel.
-    background-color: var(--panelColorDark);
-    border-width: 1rem;
-    border-style: solid;
-    border-top-color: var(--sectionBorderColor);
-    border-right-color: var(--sectionBorderColor);
-    border-bottom-color: var(--sectionBorderColor);
-    border-left-color: var(--sectionBorderColor);
-    border-top-left-radius: var(--panelRadiusInner);
-    border-top-right-radius: var(--panelRadiusInner);
-    border-bottom-right-radius: var(--panelRadiusInner);
-    border-bottom-left-radius: var(--panelRadiusInner);
-    font-size: var(--fontSizeS);
-    max-height: 300rem;
-    overflow-y: auto;
-}
-
-.dropdownItem {
-    padding-top: var(--gap2);
-    padding-bottom: var(--gap2);
-    padding-left: var(--gap3);
-    padding-right: var(--gap3);
-    color: var(--normalTextColor);
-    cursor: pointer;
-}
-.dropdownItem:hover {
-    background-color: var(--hoverColor);
-}
-
-.btn {
-    font-size: var(--fontSizeS);
-    font-weight: 500;
-    padding-top: var(--gap2);
-    padding-bottom: var(--gap2);
-    padding-left: var(--gap3);
-    padding-right: var(--gap3);
-    border-top-left-radius: var(--panelRadiusInner);
-    border-top-right-radius: var(--panelRadiusInner);
-    border-bottom-right-radius: var(--panelRadiusInner);
-    border-bottom-left-radius: var(--panelRadiusInner);
-    border-width: 1rem;
-    border-style: solid;
-    border-top-color: var(--sectionBorderColor);
-    border-right-color: var(--sectionBorderColor);
-    border-bottom-color: var(--sectionBorderColor);
-    border-left-color: var(--sectionBorderColor);
-    background-color: var(--sectionBackgroundColor);
-    color: var(--normalTextColor);
-    cursor: pointer;
-    white-space: nowrap;
-}
-.btn:hover {
-    background-color: var(--hoverColor);
-}
-
-.modeToggle {
-    display: flex;
-    background-color: var(--sectionBackgroundColor);
-    border-width: 1rem;
-    border-style: solid;
-    border-top-color: var(--sectionBorderColor);
-    border-right-color: var(--sectionBorderColor);
-    border-bottom-color: var(--sectionBorderColor);
-    border-left-color: var(--sectionBorderColor);
-    border-top-left-radius: var(--panelRadiusInner);
-    border-top-right-radius: var(--panelRadiusInner);
-    border-bottom-right-radius: var(--panelRadiusInner);
-    border-bottom-left-radius: var(--panelRadiusInner);
-    padding: 2rem;
-    row-gap: 2rem;
-    column-gap: 2rem;
-}
-.modeToggle button {
-    flex: 1;
-    border: none;
-    background: transparent;
-    color: var(--textColorDim);
-    font-size: var(--fontSizeS);
-    font-weight: 500;
-    padding-top: var(--gap2);
-    padding-bottom: var(--gap2);
-    padding-left: 0;
-    padding-right: 0;
-    border-top-left-radius: calc(var(--panelRadiusInner) - 2rem);
-    border-top-right-radius: calc(var(--panelRadiusInner) - 2rem);
-    border-bottom-right-radius: calc(var(--panelRadiusInner) - 2rem);
-    border-bottom-left-radius: calc(var(--panelRadiusInner) - 2rem);
-    cursor: pointer;
-    font-family: var(--fontFamily);
-}
-.modeToggle button.active {
-    background-color: var(--accentColorDark);
-    color: var(--normalTextColor);
-}
-
-.searchInputWrapper {
-    position: relative;
-    width: 100%;
-}
-
-.searchInput {
-    width: 100%;
-    background-color: var(--sectionBackgroundColor);
-    border-width: 1rem;
-    border-style: solid;
-    border-top-color: var(--sectionBorderColor);
-    border-right-color: var(--sectionBorderColor);
-    border-bottom-color: var(--sectionBorderColor);
-    border-left-color: var(--sectionBorderColor);
-    border-top-left-radius: var(--panelRadiusInner);
-    border-top-right-radius: var(--panelRadiusInner);
-    border-bottom-right-radius: var(--panelRadiusInner);
-    border-bottom-left-radius: var(--panelRadiusInner);
-    color: var(--normalTextColor);
-    font-size: var(--fontSizeS);
-    padding-top: var(--gap2);
-    padding-bottom: var(--gap2);
-    padding-left: var(--gap3);
-    padding-right: var(--gap3);
-    font-family: var(--fontFamily);
-}
-
-// Overlay placeholder (not the native `placeholder` attribute - see the comment in
-// ThemeExtraPanel.tsx for why: ::placeholder is unsupported in this engine). Positioned to line up
-// with .searchInput's own padding; pointer-events:none so clicks reach the real input underneath.
-.searchInputPlaceholder {
-    position: absolute;
-    left: var(--gap3);
-    right: var(--gap3);
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--textColorDim);
-    font-size: var(--fontSizeS);
-    pointer-events: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.filterChips {
-    display: flex;
-    row-gap: var(--gap2);
-    column-gap: var(--gap2);
-    flex-wrap: wrap;
-}
-.chip {
-    font-size: var(--fontSizeXS);
-    font-weight: 500;
-    padding: 3rem 9rem;
-    border-radius: 999rem;
-    border-width: 1rem;
-    border-style: solid;
-    border-top-color: var(--sectionBorderColor);
-    border-right-color: var(--sectionBorderColor);
-    border-bottom-color: var(--sectionBorderColor);
-    border-left-color: var(--sectionBorderColor);
-    background-color: var(--sectionBackgroundColor);
-    color: var(--textColorDim);
-    cursor: pointer;
-    white-space: nowrap;
-}
-.chip.active {
-    background-color: var(--accentColorNormal);
-    border-top-color: var(--accentColorNormal);
-    border-right-color: var(--accentColorNormal);
-    border-bottom-color: var(--accentColorNormal);
-    border-left-color: var(--accentColorNormal);
-    color: #0d1420;
-    // .chip is a <span> (ThemeExtraPanel.tsx), never a <button> - it was never actually affected by
-    // the .modeToggle button/.searchInput tofu bug (that was `font-family: inherit`, which .chip
-    // never had). 500 kept anyway since it matches .chip's own base weight.
-    font-weight: 500;
-}
-
-// Masonry grid: CSS `column-width` is confirmed non-functional in cohtml 2.2.1.3 (silent no-op,
-// no column division at all) - layout is computed in JS instead (see Masonry.tsx), which measures
-// each group's real height and places it in the shortest column, rebalancing independently as
-// groups expand/collapse or the panel is resized. See docs/ThemePanel-Design.md.
+// Masonry grid: CSS `column-width` is non-functional in cohtml 2.2.1.3 (silent no-op) - layout is
+// computed in JS instead, see Masonry.tsx.
 .content {
     flex: 1 1 auto;
     overflow-y: auto;
@@ -298,10 +54,9 @@
 
 .group {
     width: 100%;
-    // Without this, .groupHeader's hover background paints a square rectangle that overflows past
-    // this card's rounded corners (the header itself has no border-radius of its own, since whether
-    // its top corners alone or all four should round depends on expanded/collapsed state) - clipping
-    // to the card's own rounded shape here is simpler and correct in both states.
+    // Clips .groupHeader's hover background to this card's rounded corners (the header itself has
+    // no border-radius, since whether its top corners alone or all four round depends on
+    // expanded/collapsed state).
     overflow: hidden;
     background-color: var(--sectionBackgroundColor);
     border-width: 1rem;
@@ -326,7 +81,6 @@
     padding-bottom: var(--gap2);
     padding-left: var(--gap3);
     padding-right: var(--gap3);
-    cursor: pointer;
 }
 .groupHeader:hover {
     background-color: var(--hoverColor);
@@ -349,118 +103,12 @@
     border-radius: 999rem;
 }
 
-.varRow {
-    display: flex;
-    align-items: center;
-    row-gap: var(--gap2);
-    column-gap: var(--gap2);
-    padding-top: var(--gap2);
-    padding-bottom: var(--gap2);
-    padding-left: var(--gap3);
-    padding-right: var(--gap3);
-    border-bottom-width: 1rem;
-    border-bottom-style: solid;
-    border-bottom-color: var(--dividerColor);
-    font-size: var(--fontSizeS);
-}
-.varRow:last-child {
-    border-bottom: none;
-}
-
-.swatch {
-    width: 14rem;
-    height: 14rem;
-    border-radius: 4rem;
-    border: 1rem solid rgba(255, 255, 255, 0.3);
-    flex: 0 0 auto;
-}
-
-.varLabel {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
-}
-
-.varValue {
-    font-size: var(--fontSizeXS);
-    color: var(--textColorDim);
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    flex: 0 0 auto;
-}
-
-.valUnit {
-    font-size: var(--fontSizeXS);
-    color: var(--normalTextColor);
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: 5rem;
-    padding: 1rem 5rem;
-    flex: 0 0 auto;
-}
-
-.valRef, .valKeyword {
-    font-size: var(--fontSizeXS);
-    color: var(--textColorDim);
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    max-width: 120rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    flex: 0 0 auto;
-}
-
-// group.title (a raw CSS selector in Advanced mode, e.g. ".some-very-long-continuous-class-name")
-// can be one long word with no spaces - the browser has no natural break point to wrap on, so it
-// overflows the foldout header/masonry column instead of wrapping. Force line-breaking at any
-// character as a fallback for exactly that case (short names still break at spaces/hyphens
-// normally). min-width: 0 is needed too - the header is a flex row, and flex children default to
-// min-width: auto, which refuses to shrink below content size and defeats the wrap entirely.
+// group.title (a raw CSS selector in Advanced mode) can be one long word with no natural break
+// point, so it overflows instead of wrapping. overflow-wrap: anywhere (not word-break: break-all)
+// still prefers breaking at an existing space/hyphen first. min-width: 0 is needed too - flex
+// children default to min-width: auto, which refuses to shrink below content size.
 .groupTitle {
     flex: 1;
-    // overflow-wrap: anywhere (not word-break: break-all) - anywhere still prefers breaking at an
-    // existing space/hyphen first, only falling back to a mid-word break for a single unbroken
-    // chunk that doesn't fit (a long CSS selector with no spaces). break-all ignored word
-    // boundaries entirely, splitting "d'accentuation" mid-word even though a space was available.
     overflow-wrap: anywhere;
     min-width: 0;
-}
-
-// Dialog (game-ui/common/panel/dialog/dialog.tsx) renders whatever we pass as `buttons` with no
-// wrapping/gap of its own - without this, multiple buttons sit flush against each other.
-.dialogButtons {
-    display: flex;
-    column-gap: 10rem;
-}
-
-.exportTextarea {
-    box-sizing: border-box;
-    width: 100%;
-    height: 130rem;
-    resize: none;
-    background: rgba(10, 15, 24, 0.5);
-    border-width: 1rem;
-    border-style: solid;
-    border-top-color: var(--sectionBorderColor);
-    border-right-color: var(--sectionBorderColor);
-    border-bottom-color: var(--sectionBorderColor);
-    border-left-color: var(--sectionBorderColor);
-    border-top-left-radius: var(--panelRadiusInner);
-    border-top-right-radius: var(--panelRadiusInner);
-    border-bottom-right-radius: var(--panelRadiusInner);
-    border-bottom-left-radius: var(--panelRadiusInner);
-    color: var(--normalTextColor);
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
-    font-size: var(--fontSizeXS);
-    padding-top: var(--gap2);
-    padding-right: var(--gap2);
-    padding-bottom: var(--gap2);
-    padding-left: var(--gap2);
-}
-
-.importError {
-    color: var(--negativeColor);
-    font-size: var(--fontSizeS);
-    margin-top: var(--gap2);
 }

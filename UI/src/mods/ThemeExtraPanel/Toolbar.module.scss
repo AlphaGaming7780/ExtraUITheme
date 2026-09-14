@@ -1,0 +1,79 @@
+// Longhand per-side/per-corner properties throughout - see ThemeExtraPanel.module.scss for why.
+
+.btn {
+    font-size: var(--fontSizeS);
+    font-weight: 500;
+    padding-top: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap3);
+    padding-right: var(--gap3);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    background-color: var(--sectionBackgroundColor);
+    color: var(--normalTextColor);
+    white-space: nowrap;
+}
+.btn:hover {
+    background-color: var(--hoverColor);
+}
+.btn[disabled] {
+    color: var(--textColorDisabled);
+}
+
+.autoSaveLabel {
+    display: flex;
+    align-items: center;
+    column-gap: var(--gap2);
+    font-size: var(--fontSizeS);
+    color: var(--normalTextColor);
+    white-space: nowrap;
+}
+
+.modeToggle {
+    display: flex;
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    padding: 2rem;
+    row-gap: 2rem;
+    column-gap: 2rem;
+}
+.modeToggle button {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--textColorDim);
+    font-size: var(--fontSizeS);
+    font-weight: 500;
+    padding-top: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: 0;
+    padding-right: 0;
+    border-top-left-radius: calc(var(--panelRadiusInner) - 2rem);
+    border-top-right-radius: calc(var(--panelRadiusInner) - 2rem);
+    border-bottom-right-radius: calc(var(--panelRadiusInner) - 2rem);
+    border-bottom-left-radius: calc(var(--panelRadiusInner) - 2rem);
+    // Not `inherit` - cohtml doesn't resolve that CSS-wide keyword for font-family and falls back to
+    // a font that can't shape accented glyphs (é/É rendered as tofu here and on .searchInput).
+    font-family: var(--fontFamily);
+}
+.modeToggle button.active {
+    background-color: var(--accentColorDark);
+    color: var(--normalTextColor);
+}

@@ -1,22 +1,16 @@
 import { ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { remToPx } from "../Helpers/RemHelper";
 
-// cohtml 2.2.1.3 confirmed to NOT implement CSS multi-column (`column-width`/`column-count`) at
-// all - no column division observed in-game, silent no-op, no warning logged. This is the JS
-// masonry fallback anticipated in docs/ThemePanel-Design.md: measure each item's rendered height,
-// place it in the currently-shortest column, and recompute whenever the container is resized or an
-// item's own height changes (e.g. a group's foldout opens/closes).
+// cohtml 2.2.1.3 doesn't implement CSS multi-column (`column-width`/`column-count`) at all (silent
+// no-op) - this is a JS masonry fallback instead: measure each item's rendered height, place it in
+// the currently-shortest column, and recompute whenever the container is resized or an item's own
+// height changes (e.g. a group's foldout opens/closes). Items render twice - once
+// invisible/absolute at column width only (to get a real height via ResizeObserver), then
+// repositioned via absolute left/top once heights are known.
 //
-// Positioning strategy: items are rendered twice - once invisible/absolute at column width only
-// (to get a real height measurement via ResizeObserver per item, since a group's content is
-// dynamic), then repositioned via absolute left/top once heights are known. There is no "let CSS do
-// it" fallback here, since column-width doesn't work at all.
-//
-// `minColumnWidth`/`gap` are given in the same rem-equivalent design units as the rest of this
-// panel's SCSS (a number that means "px at the 1920x1080 reference resolution", see RemHelper.tsx)
-// - not real pixels. ResizeObserver's contentRect (container width, item heights) IS real device
-// pixels, so both are converted via remToPx() before the layout math, which otherwise works
-// entirely in real pixels.
+// `minColumnWidth`/`gap` are in the same rem-equivalent design units as the rest of this panel's
+// SCSS (see RemHelper.tsx), not real pixels - converted via remToPx() before the layout math, which
+// otherwise works entirely in real pixels (ResizeObserver's contentRect already reports those).
 
 interface MasonryItem {
     key: string;
@@ -45,11 +39,10 @@ export const Masonry = ({ items, minColumnWidth, gap }: { items: MasonryItem[]; 
 
     useLayoutEffect(() => {
         // ONE shared ResizeObserver for every item, not one-per-item: Advanced mode alone produces
-        // 258 groups (one per CSS selector in the game's stylesheet - measured directly), so N
-        // separate ResizeObserver instances each firing their own callback/state update was a real
-        // source of lag on mode switch. A single observer batches every changed element into one
-        // `entries` array per callback, so all height changes land in a single setHeights call
-        // (and a single re-render) instead of up to 258 of them back to back.
+        // 258 groups (one per CSS selector), so N separate observers each firing their own callback
+        // was a real source of lag on mode switch. A single observer batches every changed element
+        // into one `entries` array per callback, so all height changes land in a single setHeights
+        // call instead of up to 258 of them back to back.
         const elementToKey = new Map<Element, string>();
         const observer = new ResizeObserver((entries) => {
             setHeights((prev) => {

@@ -22,6 +22,8 @@
 
     "ExtraTheme.Panel.Export": "Export",
     "ExtraTheme.Panel.Import": "Import",
+    "ExtraTheme.Panel.Save": "Save",
+    "ExtraTheme.Panel.AutoSave": "Auto-save",
     "ExtraTheme.Panel.Simple": "Simple",
     "ExtraTheme.Panel.Advanced": "Advanced",
     "ExtraTheme.Panel.SearchPlaceholder": "Search, e.g. panel*Color",
@@ -32,5 +34,10 @@
     "ExtraTheme.Panel.Copy": "Copy",
     "ExtraTheme.Panel.Cancel": "Cancel",
     "ExtraTheme.Panel.ImportPlaceholder": "Paste the exported theme here (JSON)...",
-    "ExtraTheme.Panel.ImportError": "Invalid text - this isn't recognizable JSON."
+    "ExtraTheme.Panel.ImportError": "Invalid text - this isn't recognizable JSON.",
+
+    "ExtraTheme.Panel.Rename": "Rename",
+    "ExtraTheme.Panel.RenameTitle": "Rename theme",
+    "ExtraTheme.Panel.RenameEmpty": "Enter a name.",
+    "ExtraTheme.Panel.RenameTaken": "A theme with that name already exists."
 }

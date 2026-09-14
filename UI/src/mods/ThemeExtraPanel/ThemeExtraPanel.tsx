@@ -8,23 +8,32 @@ import { TypedListRenderer } from "../../../game-ui/common/typed-renderer/typed-
 import { Dropdown } from "../../../game-ui/common/input/dropdown/dropdown";
 import { DropdownToggle } from "../../../game-ui/common/input/dropdown/dropdown-toggle";
 import { DropdownItem } from "../../../game-ui/common/input/dropdown/items/dropdown-item";
+import { Checkbox } from "../../../game-ui/common/input/toggle/checkbox/checkbox";
+import { FocusScope } from "../../../game-ui/common/focus/focus-scope";
 import styles from "./ThemeExtraPanel.module.scss";
-import { CssDeclaration, CssDeclarationKind } from "./CssDeclarationTypes";
+import dropdownStyles from "./ThemeDropdown.module.scss";
+import toolbarStyles from "./Toolbar.module.scss";
+import searchStyles from "./SearchBar.module.scss";
+import chipStyles from "./FilterChips.module.scss";
+import { CssDeclaration, CssDeclarationKind } from "./DeclarationRow/CssDeclarationTypes";
 import { Theme } from "./ThemeTypes";
-import { cssDeclarationRowComponents } from "./CssDeclarationRow";
+import { cssDeclarationRowComponents } from "./DeclarationRow/CssDeclarationRow";
 import { matchesSearch } from "../Helpers/search";
 import { resolveOverrideFields } from "../Helpers/resolveOverride";
-import { ExportDialog, ImportDialog } from "./ExportImportDialogs";
+import { ExportDialog, ImportDialog } from "./Dialogs/ExportImportDialogs";
+import { RenameThemeDialog } from "./Dialogs/RenameThemeDialog";
 import { Masonry } from "./Masonry";
 
 const cssDeclarations$ = bindValue<CssDeclaration[]>("ET", "CssDeclarations");
 const availableThemes$ = bindValue<Theme[]>("ET", "AvailableThemes");
 const activeThemeName$ = bindValue<string>("ET", "ActiveThemeName");
+const autoSave$ = bindValue<boolean>("ET", "AutoSave");
+const hasUnsavedChanges$ = bindValue<boolean>("ET", "HasUnsavedChanges");
 
 type Mode = "simple" | "advanced";
 
 // Curated "important" variables for Simple mode, grouped by topic. Advanced mode instead groups
-// everything by its origin CSS selector - see docs/ThemePanel-Design.md.
+// everything by its origin CSS selector.
 // Kept in sync with every color variable the two legacy presets (BrightBlue/DarkGreyOrange, see
 // src/embedded/Themes/) actually override - if a theme can change it, Simple mode should show it
 // somewhere sensible rather than only in Advanced.
@@ -59,16 +68,14 @@ const SIMPLE_GROUPS: { key: string; names: string[] }[] = [
 
 const ALL_KINDS = Object.values(CssDeclarationKind).filter((k) => typeof k === "number") as CssDeclarationKind[];
 
-// Our own theme for Dropdown/DropdownToggle/DropdownItem - see the matching classes in
-// ThemeExtraPanel.module.scss for why (not the game's own game-dropdown theme, whose colors are
-// hardcoded rather than panel-relative, and whose z-index needs to be on dropdownPopup - the
-// element actually portaled to document.body - not dropdownMenu, an inner div nested inside it).
+// Custom theme for Dropdown/DropdownToggle/DropdownItem - see ThemeDropdown.module.scss for why
+// (not the game's own game-dropdown theme).
 const dropdownTheme = {
-    dropdownToggle: styles.dropdownToggle,
-    indicator: styles.dropdownIndicator,
-    dropdownPopup: styles.dropdownPopup,
-    dropdownMenu: styles.dropdownMenu,
-    dropdownItem: styles.dropdownItem,
+    dropdownToggle: dropdownStyles.dropdownToggle,
+    indicator: dropdownStyles.dropdownIndicator,
+    dropdownPopup: dropdownStyles.dropdownPopup,
+    dropdownMenu: dropdownStyles.dropdownMenu,
+    dropdownItem: dropdownStyles.dropdownItem,
 };
 
 export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
@@ -76,6 +83,8 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const declarations = useValue(cssDeclarations$) ?? [];
         const availableThemes = useValue(availableThemes$) ?? [];
         const activeThemeName = useValue(activeThemeName$);
+        const autoSave = useValue(autoSave$) ?? false;
+        const hasUnsavedChanges = useValue(hasUnsavedChanges$) ?? false;
         const { translate } = useLocalization();
 
         const [mode, setMode] = useState<Mode>("simple");
@@ -83,13 +92,14 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const [activeKinds, setActiveKinds] = useState<CssDeclarationKind[]>([]);
         const [showExport, setShowExport] = useState(false);
         const [showImport, setShowImport] = useState(false);
+        const [showRename, setShowRename] = useState(false);
         const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
         // Tracks every group that has EVER been expanded, and never removes from it - a group's
         // row content (TypedListRenderer below) only mounts once it's been opened at least once,
         // then stays mounted (just visually collapsed by FoldoutItem) so re-opening it later is
-        // free. Advanced mode alone produces 258 groups (one per CSS selector - measured directly),
-        // so rendering every group's rows eagerly on mode switch, most of which nobody ever opens,
-        // was a real source of lag.
+        // free. Advanced mode alone produces 258 groups (one per CSS selector), so rendering every
+        // group's rows eagerly on mode switch, most of which nobody ever opens, was a real source
+        // of lag.
         const [everExpandedGroups, setEverExpandedGroups] = useState<Set<string>>(new Set());
 
         const toggleKind = (kind: CssDeclarationKind) => {
@@ -135,8 +145,8 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                 // In Advanced mode (grouped by selector), a search also matching the selector
                 // itself pulls in that whole group - e.g. typing "bright-blue" should surface
                 // .style--bright-blue's declarations even though "bright-blue" isn't in any of
-                // their names. Simple mode's own curated-name restriction already ignores this
-                // (see the `groups` useMemo below), so it's harmless to leave enabled there too.
+                // their names. Simple mode's own curated-name restriction (see `groups` below)
+                // already ignores this, so it's harmless to leave enabled there too.
                 if (matchesSearch(search, d.name)) return true;
                 if (mode === "advanced" && matchesSearch(search, d.selector)) return true;
                 return false;
@@ -148,8 +158,6 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                 // Restricted to :root - the same --variable name also exists under
                 // .style--bright-blue/.style--dark-grey-orange/etc (each theme's own override of
                 // it), so without this a curated group would show the same variable 2-3 times over.
-                // That multi-selector view is what Advanced mode is for; Simple mode should only
-                // ever show the one live/default declaration.
                 return SIMPLE_GROUPS
                     .map((g) => ({
                         title: g.key,
@@ -169,15 +177,10 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                 .map(([selector, items]) => ({ title: selector, displayTitle: selector, items }));
         }, [filtered, mode, translate]);
 
-        // Advanced mode alone produces 258 groups (one per CSS selector, measured directly) -
-        // rendering every group's row content eagerly on mode switch was the main source of lag,
-        // even though most groups are tiny (median 1 declaration) and never get opened. A group's
-        // TypedListRenderer only mounts once it's been expanded at least once (everExpandedGroups),
-        // and then stays mounted so re-collapsing/re-expanding it later is free - FoldoutItem
-        // itself handles hiding it visually while collapsed. Memoized so typing in the search box
-        // or toggling a kind chip (which change `filtered`/`groups`, but not which groups are
-        // expanded) doesn't rebuild all 258 group nodes on every keystroke for no reason beyond
-        // what `groups` itself already needed to recompute.
+        // A group's TypedListRenderer only mounts once it's been expanded at least once
+        // (everExpandedGroups above), which is what keeps a mode switch (258 groups in Advanced)
+        // fast. Memoized so typing in the search box or toggling a kind chip doesn't rebuild every
+        // group node on each keystroke for no reason beyond what `groups` itself needed anyway.
         const masonryItems = useMemo(() => groups.map((group) => {
             const expanded = expandedGroups.has(group.title);
             const everExpanded = everExpandedGroups.has(group.title);
@@ -207,10 +210,18 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         }), [groups, expandedGroups, everExpandedGroups]);
 
         return (
+        // Our own multi-child focus boundary for everything below - without it, the theme
+        // Dropdown and every expanded FoldoutItem group's content try to register directly with
+        // the game Panel's own ambient single-child focus slot ("PanelContent") and fight over it,
+        // producing "Attempted to unregister mismatching focus key ... from a KeyFocusController!"
+        // once a losing registration's owner unmounts/collapses. FocusScope's own controller is a
+        // proper multi-child one (a Map keyed by focus key), so everything underneath registers
+        // with THIS instead.
+        <FocusScope>
         <div className={styles.themeExtraPanelContent}>
             <div className={styles.toolbar}>
                 <div className={styles.row}>
-                    <div className={styles.themeSelect}>
+                    <div className={dropdownStyles.themeSelect}>
                         <Dropdown
                             theme={dropdownTheme}
                             content={
@@ -233,23 +244,26 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                             <DropdownToggle theme={dropdownTheme}>{themeDisplayName(activeTheme)}</DropdownToggle>
                         </Dropdown>
                     </div>
-                    {/* Root cause (found in-game) was .modeToggle button's `font-family: inherit` -
-                    cohtml doesn't resolve that CSS-wide keyword, see ThemeExtraPanel.module.scss -
-                    now fixed there directly. These <span> wraps predate that fix and were never
-                    confirmed necessary for .btn (Export/Import never had the bug); kept as a cheap
-                    safety net rather than removed sight-unseen - revisit once retested in-game. */}
-                    <button className={styles.btn} onClick={() => setShowExport(true)}><span>{translate("ExtraTheme.Panel.Export", "Export")}</span></button>
-                    <button className={styles.btn} onClick={() => setShowImport(true)}><span>{translate("ExtraTheme.Panel.Import", "Import")}</span></button>
+                    {/* Text wrapped in a child <span>, not the <button>'s own direct text node - see
+                    .modeToggle button in Toolbar.module.scss for the accented-character reason. */}
+                    <button className={toolbarStyles.btn} disabled={!activeTheme || activeTheme.isBuiltIn} onClick={() => setShowRename(true)}><span>{translate("ExtraTheme.Panel.Rename", "Rename")}</span></button>
+                    <button className={toolbarStyles.btn} onClick={() => setShowExport(true)}><span>{translate("ExtraTheme.Panel.Export", "Export")}</span></button>
+                    <button className={toolbarStyles.btn} onClick={() => setShowImport(true)}><span>{translate("ExtraTheme.Panel.Import", "Import")}</span></button>
+                    <button className={toolbarStyles.btn} disabled={!hasUnsavedChanges} onClick={() => trigger("ET", "SaveTheme", true)}><span>{translate("ExtraTheme.Panel.Save", "Save")}</span></button>
+                    <label className={toolbarStyles.autoSaveLabel}>
+                        <Checkbox checked={autoSave} onChange={(value: boolean) => trigger("ET", "SetAutoSave", value)} />
+                        <span>{translate("ExtraTheme.Panel.AutoSave", "Auto-save")}</span>
+                    </label>
                 </div>
 
-                <div className={styles.modeToggle}>
-                    <button className={mode === "simple" ? styles.active : undefined} onClick={() => setMode("simple")}><span>{translate("ExtraTheme.Panel.Simple", "Simple")}</span></button>
-                    <button className={mode === "advanced" ? styles.active : undefined} onClick={() => setMode("advanced")}><span>{translate("ExtraTheme.Panel.Advanced", "Advanced")}</span></button>
+                <div className={toolbarStyles.modeToggle}>
+                    <button className={mode === "simple" ? toolbarStyles.active : undefined} onClick={() => setMode("simple")}><span>{translate("ExtraTheme.Panel.Simple", "Simple")}</span></button>
+                    <button className={mode === "advanced" ? toolbarStyles.active : undefined} onClick={() => setMode("advanced")}><span>{translate("ExtraTheme.Panel.Advanced", "Advanced")}</span></button>
                 </div>
 
-                <div className={styles.searchInputWrapper}>
+                <div className={searchStyles.searchInputWrapper}>
                     <input
-                        className={styles.searchInput}
+                        className={searchStyles.searchInput}
                         value={search}
                         onChange={(e) => setSearch((e.target as HTMLInputElement).value)}
                         onKeyDown={(e) => {
@@ -278,25 +292,18 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                             }
                         }}
                     />
-                    {/* Custom overlay, not the native `placeholder` attribute: `::placeholder` is
-                    confirmed unsupported in this engine (no way to color it, so it rendered in
-                    some default/invisible tone - never actually visible), independent of the
-                    accented-character tofu bug below. .searchInput itself also had
-                    `font-family: inherit`, the actual root cause of the tofu - now fixed in
-                    ThemeExtraPanel.module.scss, which may also resolve tofu on *typed* text in this
-                    field (previously unresolved) - pending in-game retest. */}
                     {search.length === 0 && (
-                        <span className={styles.searchInputPlaceholder}>
+                        <span className={searchStyles.searchInputPlaceholder}>
                             {translate("ExtraTheme.Panel.SearchPlaceholder", "Search, e.g. panel*Color")}
                         </span>
                     )}
                 </div>
 
-                <div className={styles.filterChips}>
+                <div className={chipStyles.filterChips}>
                     {ALL_KINDS.map((kind) => (
                         <span
                             key={kind}
-                            className={activeKinds.includes(kind) ? `${styles.chip} ${styles.active}` : styles.chip}
+                            className={activeKinds.includes(kind) ? `${chipStyles.chip} ${chipStyles.active}` : chipStyles.chip}
                             onClick={() => toggleKind(kind)}
                         >
                             {translate(`ExtraTheme.Panel.Kind[${CssDeclarationKind[kind]}]`, CssDeclarationKind[kind])}
@@ -315,7 +322,15 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
 
             {showExport && <ExportDialog declarations={filtered} onClose={() => setShowExport(false)} />}
             {showImport && <ImportDialog onClose={() => setShowImport(false)} onImport={(imported) => console.log("[ExtraTheme] Imported declarations", imported)} />}
+            {showRename && activeTheme && (
+                <RenameThemeDialog
+                    currentName={activeTheme.name}
+                    takenNames={availableThemes.filter((t) => t.name !== activeTheme.name).map((t) => t.name)}
+                    onClose={() => setShowRename(false)}
+                />
+            )}
         </div>
+        </FocusScope>
         )
     }
     return ComponentList;
