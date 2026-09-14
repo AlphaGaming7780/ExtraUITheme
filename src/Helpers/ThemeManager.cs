@@ -12,9 +12,13 @@ namespace ExtraTheme.Helpers
     // docs/ThemePanel-Design.md:
     // - Built-in themes (Default + the two legacy presets) ship embedded in the DLL
     //   (embedded/Themes/*.json), read-only, never renamed/deleted from the UI.
-    // - User themes are plain files under ModsData/ExtraTheme/Themes/*.json, the theme's Name is
-    //   its filename (no separate GUID/CID - see conversation: simpler to use, the tradeoff being
-    //   name collisions are handled explicitly here rather than being impossible by construction).
+    // - User themes are plain files under ModsData/ExtraTheme/Themes/*.json.
+    //
+    // Every known theme lives in one in-memory cache (m_Themes, keyed by Name), populated once by
+    // Initialize() - GetAllThemes()/GetTheme() never touch disk, so polling them from the UI (which
+    // happens on every edit) doesn't mean re-reading and re-parsing every theme file every time. A
+    // theme with unsaved changes (a fresh fork, an in-progress rename, an edited override) is just
+    // a cache entry with IsDirty set - not a separate pending-state mechanism.
     internal static class ThemeManager
     {
         internal const string DefaultThemeName = "Default";
@@ -23,7 +27,36 @@ namespace ExtraTheme.Helpers
         private static readonly string UserThemesFolder =
             Path.Combine(EnvPath.kUserDataPath, "ModsData", nameof(ExtraTheme), "Themes");
 
-        internal static List<Theme> LoadBuiltInThemes()
+        private static Dictionary<string, Theme> m_Themes;
+
+        // (Re)scans built-ins + UserThemesFolder into m_Themes from scratch. Anything only in
+        // memory and never saved (a fork, a rename not yet followed by Save) is lost, same as any
+        // other unsaved edit - this only knows what's actually on disk. Called once from
+        // ThemeExtraPanel.OnCreate, and again by the "Reload Theme" mod-settings button.
+        internal static void Initialize()
+        {
+            m_Themes = new Dictionary<string, Theme>();
+
+            foreach (Theme theme in LoadBuiltInThemes()) m_Themes[theme.Name] = theme;
+
+            if (Directory.Exists(UserThemesFolder))
+            {
+                foreach (string path in Directory.EnumerateFiles(UserThemesFolder, "*.json"))
+                {
+                    Theme theme = LoadUserTheme(path);
+                    if (theme != null) m_Themes[theme.Name] = theme;
+                }
+            }
+        }
+
+        internal static List<Theme> GetAllThemes() => m_Themes.Values.ToList();
+
+        internal static Theme GetTheme(string name) =>
+            name != null && m_Themes.TryGetValue(name, out Theme theme) ? theme : null;
+
+        internal static bool IsBuiltInName(string name) => name == DefaultThemeName || BuiltInPresetNames.Contains(name);
+
+        private static List<Theme> LoadBuiltInThemes()
         {
             List<Theme> themes = new List<Theme>
             {
@@ -57,92 +90,144 @@ namespace ExtraTheme.Helpers
             return themes;
         }
 
-        internal static List<Theme> LoadUserThemes()
+        // A user theme file's own Name field is the source of truth for display, read here at load
+        // time - not derived from the filename, which only has to be a valid Windows filename, not a
+        // legible theme name. Decoded straight into a Theme (see its own comment on why that's safe)
+        // - Name comes back null if the file doesn't decode to that shape at all, in which case this
+        // falls back to parsing it as a bare {"--var": "value"} map (the pre-migration shape, no
+        // Name/Overrides wrapper) so a theme saved by an older build of this mod isn't stranded -
+        // its name is just its filename, same as before.
+        private static Theme LoadUserTheme(string path)
         {
-            List<Theme> themes = new List<Theme>();
+            string fileName = Path.GetFileNameWithoutExtension(path);
+            string json = File.ReadAllText(path);
 
-            if (!Directory.Exists(UserThemesFolder)) return themes;
-
-            foreach (string path in Directory.EnumerateFiles(UserThemesFolder, "*.json"))
+            try
             {
-                string name = Path.GetFileNameWithoutExtension(path);
-                try
+                Theme theme = Decoder.Decode(json).Make<Theme>();
+                if (theme?.Name != null)
                 {
-                    Dictionary<string, string> overrides = Decoder.Decode(File.ReadAllText(path)).Make<Dictionary<string, string>>();
-                    themes.Add(new Theme { Name = name, IsBuiltIn = false, Overrides = overrides });
-                }
-                catch (Exception ex)
-                {
-                    ET.Logger.Error($"Failed to load user theme '{name}' from {path}: {ex}");
+                    theme.IsBuiltIn = false;
+                    theme.FileName = fileName;
+                    return theme;
                 }
             }
+            catch
+            {
+                // Not the {Name, Overrides} shape - fall through to the pre-migration format below.
+            }
 
-            return themes.OrderBy(t => t.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            try
+            {
+                Dictionary<string, string> overrides = Decoder.Decode(json).Make<Dictionary<string, string>>();
+                return new Theme { Name = fileName, IsBuiltIn = false, Overrides = overrides, FileName = fileName };
+            }
+            catch (Exception ex)
+            {
+                ET.Logger.Error($"Failed to load user theme from {path}: {ex}");
+                return null;
+            }
         }
 
-        internal static List<Theme> GetAllThemes()
+        // Writes `theme` itself to disk under its own FileName - assigned here, once, from Name at
+        // the time of this FIRST save for a theme that doesn't have one yet, and never changed again
+        // even across later renames (Theme.Rename only ever touches Name/IsDirty). A rename after the
+        // first save updates the Name field inside the file's own JSON on the next save, not the
+        // file's location - so the filename can end up not matching the current display name if
+        // browsed by hand in ModsData. Deliberate: avoids re-deriving/moving the file (and re-running
+        // collision avoidance) on every rename, not just the first save.
+        internal static bool Save(Theme theme)
         {
-            List<Theme> themes = LoadBuiltInThemes();
-            themes.AddRange(LoadUserThemes());
-            return themes;
-        }
+            if (theme == null || theme.IsBuiltIn) return false;
 
-        internal static bool IsBuiltInName(string name) => name == DefaultThemeName || BuiltInPresetNames.Contains(name);
-
-        internal static bool UserThemeExists(string name) =>
-            File.Exists(Path.Combine(UserThemesFolder, SanitizeFileName(name) + ".json"));
-
-        // Returns false (without writing) if `name` collides with a built-in theme - the caller is
-        // responsible for the Écraser/Renommer/Annuler conflict prompt for an existing user theme
-        // (design doc), this only guards the built-in names which must never be shadowed.
-        internal static bool SaveUserTheme(string name, Dictionary<string, string> overrides)
-        {
-            if (string.IsNullOrWhiteSpace(name)) return false;
-            if (IsBuiltInName(name)) return false;
+            if (theme.FileName == null)
+            {
+                string baseName = SanitizeFileName(theme.Name);
+                string candidate = baseName;
+                for (int n = 2; File.Exists(Path.Combine(UserThemesFolder, candidate + ".json")); n++)
+                    candidate = $"{baseName} ({n})";
+                theme.FileName = candidate;
+            }
 
             if (!Directory.Exists(UserThemesFolder)) Directory.CreateDirectory(UserThemesFolder);
 
-            string path = Path.Combine(UserThemesFolder, SanitizeFileName(name) + ".json");
-            File.WriteAllText(path, Encoder.Encode(overrides, EncodeOptions.None));
+            string path = Path.Combine(UserThemesFolder, theme.FileName + ".json");
+            File.WriteAllText(path, Encoder.Encode(theme, EncodeOptions.None));
+
+            theme.IsDirty = false;
             return true;
         }
 
-        internal static void DeleteUserTheme(string name)
+        // "<source.Name> (copy)", "(copy 2)", ... until a free name is found - registers the fork in
+        // the cache immediately (IsDirty, no FileName yet) so it behaves like any other theme (shows
+        // up in GetAllThemes(), is a valid SelectTheme/RenameTheme target) even before it's ever
+        // saved. Built-ins are read-only, so editing one forks it into a real (if not yet persisted)
+        // user theme first - see ThemeExtraPanel.SetOverride.
+        internal static Theme Fork(Theme source)
         {
-            string path = Path.Combine(UserThemesFolder, SanitizeFileName(name) + ".json");
-            if (File.Exists(path)) File.Delete(path);
-        }
-
-        // False (without writing) if newName is a built-in name, already taken by another user
-        // theme, or oldName has no file on disk (a still-unsaved forked theme - the caller handles
-        // that case itself, see ThemeExtraPanel.RenameTheme).
-        internal static bool RenameUserTheme(string oldName, string newName)
-        {
-            if (string.IsNullOrWhiteSpace(newName)) return false;
-            if (IsBuiltInName(newName)) return false;
-            if (UserThemeExists(newName)) return false;
-
-            string oldPath = Path.Combine(UserThemesFolder, SanitizeFileName(oldName) + ".json");
-            if (!File.Exists(oldPath)) return false;
-
-            string newPath = Path.Combine(UserThemesFolder, SanitizeFileName(newName) + ".json");
-            File.Move(oldPath, newPath);
-            return true;
-        }
-
-        // Editing a value while a built-in theme is active forks it into a new user theme first
-        // (built-ins are read-only) - "<sourceName> (copy)", "<sourceName> (copy 2)", ... until a
-        // free name is found. Only picks the name, doesn't write anything - the caller decides
-        // whether/when to persist (see ThemeExtraPanel's pending-save state).
-        internal static string GenerateForkName(string sourceName)
-        {
-            string baseName = $"{sourceName} (copy)";
+            string baseName = $"{source.Name} (copy)";
             string name = baseName;
-            for (int n = 2; UserThemeExists(name); n++) name = $"{baseName} {n}";
-            return name;
+            for (int n = 2; m_Themes.ContainsKey(name); n++) name = $"{baseName} {n}";
+
+            Theme forked = new Theme
+            {
+                Name = name,
+                IsBuiltIn = false,
+                Overrides = new Dictionary<string, string>(source.Overrides),
+                IsDirty = true,
+            };
+            m_Themes[name] = forked;
+            return forked;
         }
 
-        // False (with `overrides` null) if the JSON doesn't decode to a plain string->string map.
+        // False (no rename) if newName is empty, theme is built-in, or newName collides with any
+        // other known theme (built-in or user) - one dictionary-key check now covers both, where
+        // this used to be two separate checks (IsBuiltInName + a disk file-existence check).
+        internal static bool Rename(Theme theme, string newName)
+        {
+            if (theme == null || theme.IsBuiltIn) return false;
+            if (string.IsNullOrWhiteSpace(newName) || newName == theme.Name) return false;
+            if (m_Themes.ContainsKey(newName)) return false;
+
+            m_Themes.Remove(theme.Name);
+            theme.Rename(newName);
+            m_Themes[newName] = theme;
+            return true;
+        }
+
+        // Creates a new theme (or, with overwrite, replaces an existing one's overrides in place -
+        // keeping its FileName so the same file is rewritten rather than orphaned) and saves it
+        // immediately - unlike Fork, an import is a deliberate one-shot action, not something that
+        // needs its own pending/dirty step. Null (nothing written) for a built-in name, or an
+        // already-taken name without overwrite.
+        internal static Theme Import(string name, Dictionary<string, string> overrides, bool overwrite)
+        {
+            if (string.IsNullOrWhiteSpace(name) || IsBuiltInName(name)) return null;
+
+            Theme existing = GetTheme(name);
+            if (existing != null && !overwrite) return null;
+
+            Theme theme = existing ?? new Theme { Name = name, IsBuiltIn = false };
+            theme.Overrides = overrides;
+            theme.IsDirty = true;
+            m_Themes[name] = theme;
+
+            if (!Save(theme)) return null;
+            return theme;
+        }
+
+        internal static void Delete(Theme theme)
+        {
+            if (theme == null || theme.IsBuiltIn) return;
+            if (theme.FileName != null)
+            {
+                string path = Path.Combine(UserThemesFolder, theme.FileName + ".json");
+                if (File.Exists(path)) File.Delete(path);
+            }
+            m_Themes.Remove(theme.Name);
+        }
+
+        // False (nothing decoded) if the JSON doesn't decode to a plain string->string map.
         internal static bool TryParseOverrides(string json, out Dictionary<string, string> overrides)
         {
             try
