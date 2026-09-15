@@ -52,7 +52,8 @@ const SIMPLE_GROUPS: { key: string; names: string[] }[] = [
             "--gradientHighlightStart", "--gradientHighlightEnd",
             "--commonCyan",
             "--focusedColor",
-            "--highlightBrightBlue",
+            "--highlightBrightBlue", "--highlightLightBlue", "--highlightGreen", "--highlightYellow",
+            "--highlightWarningRed", "--highlightWarningLightRed",
         ]
     },
     { key: "States", names: ["--positiveColor", "--warningColor", "--negativeColor"] },

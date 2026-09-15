@@ -46,20 +46,22 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    // Not a system monospace stack - cohtml's fallback for an unregistered font name doesn't cover
+    // accented glyphs (é/É render as tofu).
+    font-family: var(--fontFamily);
 }
 
 .varValue {
     font-size: var(--fontSizeXS);
     color: var(--textColorDim);
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-family: var(--fontFamily);
     flex: 0 0 auto;
 }
 
 .valUnit {
     font-size: var(--fontSizeXS);
     color: var(--normalTextColor);
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-family: var(--fontFamily);
     background: rgba(0, 0, 0, 0.25);
     border-radius: 5rem;
     padding: 1rem 5rem;
@@ -69,7 +71,7 @@
 .valRef, .valKeyword {
     font-size: var(--fontSizeXS);
     color: var(--textColorDim);
-    font-family: ui-monospace, "SF Mono", Consolas, monospace;
+    font-family: var(--fontFamily);
     max-width: 120rem;
     overflow: hidden;
     text-overflow: ellipsis;

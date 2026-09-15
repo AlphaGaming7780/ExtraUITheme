@@ -7,6 +7,9 @@
 .renameInput {
     box-sizing: border-box;
     width: 100%;
+    // Same gap used before Dialog's buttons row in ExportImportDialogs (.importNameInput/
+    // %dialogTextBox) - kept consistent across all of this panel's modals.
+    margin-bottom: var(--gap5);
     background-color: var(--sectionBackgroundColor);
     border-width: 1rem;
     border-style: solid;

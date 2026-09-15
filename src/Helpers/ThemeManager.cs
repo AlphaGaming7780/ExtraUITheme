@@ -92,35 +92,17 @@ namespace ExtraTheme.Helpers
 
         // A user theme file's own Name field is the source of truth for display, read here at load
         // time - not derived from the filename, which only has to be a valid Windows filename, not a
-        // legible theme name. Decoded straight into a Theme (see its own comment on why that's safe)
-        // - Name comes back null if the file doesn't decode to that shape at all, in which case this
-        // falls back to parsing it as a bare {"--var": "value"} map (the pre-migration shape, no
-        // Name/Overrides wrapper) so a theme saved by an older build of this mod isn't stranded -
-        // its name is just its filename, same as before.
+        // legible theme name. Decoded straight into a Theme - see its own comment on why that's safe.
         private static Theme LoadUserTheme(string path)
         {
             string fileName = Path.GetFileNameWithoutExtension(path);
-            string json = File.ReadAllText(path);
 
             try
             {
-                Theme theme = Decoder.Decode(json).Make<Theme>();
-                if (theme?.Name != null)
-                {
-                    theme.IsBuiltIn = false;
-                    theme.FileName = fileName;
-                    return theme;
-                }
-            }
-            catch
-            {
-                // Not the {Name, Overrides} shape - fall through to the pre-migration format below.
-            }
-
-            try
-            {
-                Dictionary<string, string> overrides = Decoder.Decode(json).Make<Dictionary<string, string>>();
-                return new Theme { Name = fileName, IsBuiltIn = false, Overrides = overrides, FileName = fileName };
+                Theme theme = Decoder.Decode(File.ReadAllText(path)).Make<Theme>();
+                theme.IsBuiltIn = false;
+                theme.FileName = fileName;
+                return theme;
             }
             catch (Exception ex)
             {

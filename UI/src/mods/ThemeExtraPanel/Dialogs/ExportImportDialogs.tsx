@@ -25,7 +25,7 @@ export const ExportDialog = ({
     overrides: Record<string, string>;
     onClose: () => void;
 }) => {
-    const [payload] = useState(() => JSON.stringify({ name: themeName, overrides }, null, 2));
+    const [payload] = useState(() => JSON.stringify({ name: themeName, overrides }, null, 4));
     const { translate } = useLocalization();
     const count = Object.keys(overrides).length;
 
@@ -44,7 +44,7 @@ export const ExportDialog = ({
                 {translate("ExtraTheme.Panel.ExportSubtitle", "Theme:")}
                 <span className={styles.themeBadge}><span className={styles.themeDot} />{themeName}</span>
             </div>
-            <textarea className={styles.exportTextarea} value={payload} readOnly />
+            <div className={styles.exportDisplay}>{payload}</div>
         </Dialog>
     );
 };
@@ -96,14 +96,16 @@ const ImportConflictDialog = ({
     return (
         <Dialog title={translate("ExtraTheme.Panel.ImportConflictTitle", "A theme with that name already exists")} onClose={onCancel}
             buttons={
-                <div className={styles.dialogButtons}>
+                <div className={styles.dialogButtonsRight}>
                     <Button className={DialogButtonSCSS.button} onSelect={onCancel}>{translate("ExtraTheme.Panel.Cancel", "Cancel")}</Button>
                     <Button className={classNames(DialogButtonSCSS.button, DialogButtonSCSS.negative)} onSelect={overwrite}>{translate("ExtraTheme.Panel.Overwrite", "Overwrite")}</Button>
                     <Button className={DialogButtonSCSS.button} onSelect={rename}>{translate("ExtraTheme.Panel.Rename", "Rename")}</Button>
                 </div>
             }>
             <div className={styles.desc}>
-                {translate("ExtraTheme.Panel.ImportConflictDesc", "A theme named")} <span className={styles.descStrong}>"{conflictingName}"</span> {translate("ExtraTheme.Panel.ImportConflictDesc2", "already exists. What do you want to do?")}
+                <span>{translate("ExtraTheme.Panel.ImportConflictDesc", "A theme named")}</span>
+                <span className={styles.descStrong}>"{conflictingName}"</span>
+                <span>{translate("ExtraTheme.Panel.ImportConflictDesc2", "already exists. What do you want to do?")}</span>
             </div>
             <div className={styles.fieldLabel}>{translate("ExtraTheme.Panel.ImportConflictNewName", "New name (if you choose Rename)")}</div>
             <input
@@ -180,7 +182,7 @@ export const ImportDialog = ({
     return (
         <Dialog wide title={translate("ExtraTheme.Panel.ImportTitle", "Import a theme")} onClose={onClose}
             buttons={
-                <div className={styles.dialogButtons}>
+                <div className={styles.dialogButtonsRight}>
                     <Button className={classNames(DialogButtonSCSS.button, DialogButtonSCSS.negative)} onSelect={onClose}>{translate("ExtraTheme.Panel.Cancel", "Cancel")}</Button>
                     <Button className={DialogButtonSCSS.button} onSelect={doImport}>{translate("ExtraTheme.Panel.Import", "Import")}</Button>
                 </div>

@@ -13,11 +13,8 @@ namespace ExtraTheme.Helpers
     // / Encoder.Encode(theme, ...)) - confirmed in the decompiled Colossal.Core source
     // (Colossal.Json/JSON.cs, Extensions.cs) that this is safe: field matching on decode is an exact
     // name match (case-sensitive, e.g. JSON "Name" -> this field), and encode only ever writes
-    // *public* fields (ForEachField: `bool flag = item.IsPublic`) - so FileName/IsDirty (internal,
-    // runtime-only bookkeeping) never reach the file. A file predating this Name/Overrides shape
-    // (a bare {"--var": "value"} map) decodes here with Name left null - ThemeManager.LoadUserTheme
-    // falls back to the old flat-dict parse for that case, no [DecodeAlias] needed since renaming a
-    // theme file by hand isn't something this mod expects users to do.
+    // *public* fields (ForEachField: `bool flag = item.IsPublic`) - so FileName/IsDirty/IsBuiltIn
+    // (internal, runtime-only bookkeeping) never reach the file.
     internal sealed class Theme : IJsonWritable, System.IEquatable<Theme>
     {
         public string Name;
