@@ -78,3 +78,98 @@
     white-space: nowrap;
     flex: 0 0 auto;
 }
+
+// "card" variant - Advanced mode's flat, ungrouped Masonry cells (no more per-selector Foldout to
+// give them a shared background/border, so each variable needs its own). "list" variant (.varRow
+// above) is unchanged, still used inside Simple mode's curated FoldoutItem groups.
+.varCard {
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    padding-top: var(--gap3);
+    padding-right: var(--gap3);
+    padding-bottom: var(--gap3);
+    padding-left: var(--gap3);
+}
+
+.cardHead {
+    display: flex;
+    align-items: center;
+    column-gap: var(--gap2);
+    margin-bottom: var(--gap2);
+}
+
+.cardName {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fontSizeXS);
+    color: var(--textColorDim);
+    font-family: var(--fontFamily);
+}
+
+// Kind tag - the only "what am I looking at" context a card has left now that it doesn't sit under
+// a labeled group header. 5 kinds (CssDeclarationKind), each its own color - not pulled from the
+// game's own --CSS-variables (unlike the rest of this panel): there's no in-game token for "this is
+// a category label", and reusing --accentColorNormal/--highlightBrightBlue for two different kinds
+// (Color and Reference) made them read as the same thing. Own fixed palette instead, picked purely
+// to stay visually distinct from each other and from the 3 semantic colors already in play elsewhere
+// (--positiveColor/--warningColor/--negativeColor).
+.kindTag {
+    flex: 0 0 auto;
+    font-size: var(--fontSizeXS);
+    font-weight: 600;
+    font-family: var(--fontFamily);
+    padding-top: 1rem;
+    padding-right: 6rem;
+    padding-bottom: 1rem;
+    padding-left: 6rem;
+    border-radius: 5rem;
+}
+.kindColor {
+    color: #5ec2f5;
+    background: rgba(94, 194, 245, 0.16);
+}
+.kindUnit {
+    color: #f5a15e;
+    background: rgba(245, 161, 94, 0.16);
+}
+.kindNumber {
+    color: #4fd8bd;
+    background: rgba(79, 216, 189, 0.16);
+}
+.kindRef {
+    color: #c397f7;
+    background: rgba(195, 151, 247, 0.16);
+}
+.kindKeyword {
+    color: #9aa6b8;
+    background: rgba(154, 166, 184, 0.14);
+}
+
+.cardBody {
+    display: flex;
+    align-items: center;
+    column-gap: var(--gap2);
+}
+
+.cardValue {
+    font-size: var(--fontSizeS);
+    color: var(--normalTextColor);
+    font-family: var(--fontFamily);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}

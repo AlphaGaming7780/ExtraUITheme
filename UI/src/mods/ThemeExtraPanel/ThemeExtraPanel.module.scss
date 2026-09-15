@@ -52,6 +52,20 @@
     padding-left: var(--gap3);
 }
 
+// display:flex + one <span> per chunk, not bare text siblings - cohtml doesn't flow plain text
+// nodes next to each other reliably (see ExportImportDialogs.module.scss's .desc for the fuller
+// writeup of this same bug); flex lays out each span as its own item regardless of its own
+// display value, sidestepping cohtml's inline text flow entirely.
+.countLine {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 5rem;
+    font-size: var(--fontSizeXS);
+    font-weight: 500;
+    color: var(--textColorDim);
+    margin-bottom: var(--gap3);
+}
+
 .group {
     width: 100%;
     // Clips .groupHeader's hover background to this card's rounded corners (the header itself has

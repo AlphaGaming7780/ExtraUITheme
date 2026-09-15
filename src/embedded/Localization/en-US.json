@@ -1,4 +1,6 @@
 {
+    "ExtraPanelHeaderName[ExtraTheme.Systems.UI.ThemePanel.ThemeExtraPanel]": "ExtraTheme",
+
     "Options.SECTION[ExtraTheme.ExtraTheme.ET]": "Extra Theme",
     "Options.GROUP[ExtraTheme.ExtraTheme.ET.Themes]": "Themes",
     "Options.OPTION[ExtraTheme.ExtraTheme.ET.Setting.ReloadThemes]": "Reload themes",

@@ -1,6 +1,6 @@
 import { bindValue, trigger, useValue } from "cs2/api";
 import { useLocalization } from "cs2/l10n";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ExtraPanelType } from "../ExtraPanelType";
 import { FoldoutItem } from "../../../game-ui/common/foldout/foldout-item";
 import { TintedIcon } from "../../../game-ui/common/image/tinted-icon";
@@ -23,6 +23,7 @@ import { resolveOverrideFields } from "../Helpers/resolveOverride";
 import { ExportDialog, ImportDialog } from "./Dialogs/ExportImportDialogs";
 import { RenameThemeDialog } from "./Dialogs/RenameThemeDialog";
 import { Masonry } from "./Masonry";
+import { LazyMount } from "../Helpers/LazyMount";
 
 const cssDeclarations$ = bindValue<CssDeclaration[]>("ET", "CssDeclarations");
 const availableThemes$ = bindValue<Theme[]>("ET", "AvailableThemes");
@@ -32,8 +33,8 @@ const hasUnsavedChanges$ = bindValue<boolean>("ET", "HasUnsavedChanges");
 
 type Mode = "simple" | "advanced";
 
-// Curated "important" variables for Simple mode, grouped by topic. Advanced mode instead groups
-// everything by its origin CSS selector.
+// Curated "important" variables for Simple mode, grouped by topic. Advanced mode shows every
+// :root-overridable variable flat, ungrouped (see the `filtered`/`groups` split below).
 // Kept in sync with every color variable the two legacy presets (BrightBlue/DarkGreyOrange, see
 // src/embedded/Themes/) actually override - if a theme can change it, Simple mode should show it
 // somewhere sensible rather than only in Advanced.
@@ -88,6 +89,10 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const hasUnsavedChanges = useValue(hasUnsavedChanges$) ?? false;
         const { translate } = useLocalization();
 
+        // Scroll container for the masonry grid - passed to LazyMount as its IntersectionObserver
+        // root, so "visible" means visible within this scrolling panel, not the whole game window.
+        const contentRef = useRef<HTMLDivElement>(null);
+
         const [mode, setMode] = useState<Mode>("simple");
         const [search, setSearch] = useState("");
         const [activeKinds, setActiveKinds] = useState<CssDeclarationKind[]>([]);
@@ -95,12 +100,10 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const [showImport, setShowImport] = useState(false);
         const [showRename, setShowRename] = useState(false);
         const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-        // Tracks every group that has EVER been expanded, and never removes from it - a group's
-        // row content (TypedListRenderer below) only mounts once it's been opened at least once,
-        // then stays mounted (just visually collapsed by FoldoutItem) so re-opening it later is
-        // free. Advanced mode alone produces 258 groups (one per CSS selector), so rendering every
-        // group's rows eagerly on mode switch, most of which nobody ever opens, was a real source
-        // of lag.
+        // Tracks every Simple-mode group that has EVER been expanded, and never removes from it -
+        // a group's row content (TypedListRenderer below) only mounts once it's been opened at
+        // least once, then stays mounted (just visually collapsed by FoldoutItem) so re-opening it
+        // later is free. Advanced mode doesn't use this at all - it has no groups anymore.
         const [everExpandedGroups, setEverExpandedGroups] = useState<Set<string>>(new Set());
 
         const toggleKind = (kind: CssDeclarationKind) => {
@@ -139,50 +142,39 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
             });
         }, [declarations, activeTheme]);
 
+        // Only :root is ever actually overridable - ExtraTheme's overrides always apply globally
+        // via an inline style on <html> (RegisterThemePanel.tsx), which beats any other selector's
+        // own rule regardless of which one a value happened to be shown from. The same --variable
+        // name also exists under dozens of other selectors (.style--bright-blue, individual
+        // component classes...) - without this restriction both modes would show the same variable
+        // several times over for no controllable difference. See
+        // Legacy/AdvancedSelectorGroupedList.tsx for the discussion and the preserved old UI.
         const filtered = useMemo(() => {
             return effectiveDeclarations.filter((d) => {
+                if (d.selector !== ":root") return false;
                 if (activeKinds.length > 0 && !activeKinds.includes(d.kind)) return false;
                 if (search.length === 0) return true;
-                // In Advanced mode (grouped by selector), a search also matching the selector
-                // itself pulls in that whole group - e.g. typing "bright-blue" should surface
-                // .style--bright-blue's declarations even though "bright-blue" isn't in any of
-                // their names. Simple mode's own curated-name restriction (see `groups` below)
-                // already ignores this, so it's harmless to leave enabled there too.
-                if (matchesSearch(search, d.name)) return true;
-                if (mode === "advanced" && matchesSearch(search, d.selector)) return true;
-                return false;
+                return matchesSearch(search, d.name);
             });
-        }, [effectiveDeclarations, activeKinds, search, mode]);
+        }, [effectiveDeclarations, activeKinds, search]);
 
+        // Advanced mode no longer groups by selector (see the note on `filtered` above) - just the
+        // curated Simple-mode groups remain.
         const groups = useMemo(() => {
-            if (mode === "simple") {
-                // Restricted to :root - the same --variable name also exists under
-                // .style--bright-blue/.style--dark-grey-orange/etc (each theme's own override of
-                // it), so without this a curated group would show the same variable 2-3 times over.
-                return SIMPLE_GROUPS
-                    .map((g) => ({
-                        title: g.key,
-                        displayTitle: translate(`ExtraTheme.Panel.Group[${g.key}]`, g.key),
-                        items: filtered.filter((d) => d.selector === ":root" && g.names.includes(d.name)),
-                    }))
-                    .filter((g) => g.items.length > 0);
-            }
-
-            const bySelector = new Map<string, CssDeclaration[]>();
-            for (const d of filtered) {
-                const list = bySelector.get(d.selector);
-                if (list) list.push(d); else bySelector.set(d.selector, [d]);
-            }
-            return [...bySelector.entries()]
-                .sort(([a], [b]) => (a === ":root" ? -1 : b === ":root" ? 1 : a.localeCompare(b)))
-                .map(([selector, items]) => ({ title: selector, displayTitle: selector, items }));
-        }, [filtered, mode, translate]);
+            return SIMPLE_GROUPS
+                .map((g) => ({
+                    title: g.key,
+                    displayTitle: translate(`ExtraTheme.Panel.Group[${g.key}]`, g.key),
+                    items: filtered.filter((d) => g.names.includes(d.name)),
+                }))
+                .filter((g) => g.items.length > 0);
+        }, [filtered, translate]);
 
         // A group's TypedListRenderer only mounts once it's been expanded at least once
-        // (everExpandedGroups above), which is what keeps a mode switch (258 groups in Advanced)
-        // fast. Memoized so typing in the search box or toggling a kind chip doesn't rebuild every
-        // group node on each keystroke for no reason beyond what `groups` itself needed anyway.
-        const masonryItems = useMemo(() => groups.map((group) => {
+        // (everExpandedGroups above), so re-opening it later is free. Memoized so typing in the
+        // search box or toggling a kind chip doesn't rebuild every group node on each keystroke for
+        // no reason beyond what `groups` itself needed anyway.
+        const simpleMasonryItems = useMemo(() => groups.map((group) => {
             const expanded = expandedGroups.has(group.title);
             const everExpanded = everExpandedGroups.has(group.title);
             return {
@@ -209,6 +201,28 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                 ),
             };
         }), [groups, expandedGroups, everExpandedGroups]);
+
+        // Advanced: no more per-selector Foldout groups (see `filtered` above) - every overridable
+        // variable is its own Masonry cell directly, rendered in the "card" variant (kind tag +
+        // its own background/border, since it no longer sits inside a labeled group). ~180 of the
+        // ~300 :root variables are Color kind, each mounting a ColorField (a heavy native
+        // color-picker) - without the old per-selector Foldout gate, that's ~180 of them mounted at
+        // once. LazyMount defers each card's real content until it's actually been scrolled into
+        // view at least once (see Helpers/LazyMount.tsx).
+        const advancedMasonryItems = useMemo(() => filtered.map((d) => ({
+            key: d.name,
+            node: (
+                <LazyMount placeholderHeight={64} root={contentRef}>
+                    <TypedListRenderer components={cssDeclarationRowComponents} data={[d]} props={{ variant: "card" }} />
+                </LazyMount>
+            ),
+        })), [filtered]);
+
+        const masonryItems = mode === "simple" ? simpleMasonryItems : advancedMasonryItems;
+
+        // "12 / 308 variables" above Advanced's flat grid - the only overview it has left now that
+        // there's no group header breaking the list into labeled sections.
+        const totalRootCount = useMemo(() => declarations.filter((d) => d.selector === ":root").length, [declarations]);
 
         return (
         // Our own multi-child focus boundary for everything below - without it, the theme
@@ -252,7 +266,13 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                     <button className={toolbarStyles.btn} onClick={() => setShowImport(true)}><span>{translate("ExtraTheme.Panel.Import", "Import")}</span></button>
                     <button className={toolbarStyles.btn} disabled={!hasUnsavedChanges} onClick={() => trigger("ET", "SaveTheme", true)}><span>{translate("ExtraTheme.Panel.Save", "Save")}</span></button>
                     <label className={toolbarStyles.autoSaveLabel}>
-                        <Checkbox checked={autoSave} onChange={(value: boolean) => trigger("ET", "SetAutoSave", value)} />
+                        {/* Built-in themes have nothing to save - SetOverride forks them into a new
+                        theme on the first edit (ThemeExtraPanel.cs), so auto-save only ever applies
+                        once that fork exists, same as the Save button above. Shown unchecked here too
+                        (not just disabled) - display-only, doesn't touch the underlying AutoSave
+                        setting, which is a global preference unrelated to whichever theme happens to
+                        be showing right now and should survive switching back to a custom theme. */}
+                        <Checkbox checked={!!activeTheme && !activeTheme.isBuiltIn && autoSave} disabled={!activeTheme || activeTheme.isBuiltIn} onChange={(value: boolean) => trigger("ET", "SetAutoSave", value)} />
                         <span>{translate("ExtraTheme.Panel.AutoSave", "Auto-save")}</span>
                     </label>
                 </div>
@@ -313,7 +333,13 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                 </div>
             </div>
 
-            <div className={styles.content}>
+            <div className={styles.content} ref={contentRef}>
+                {mode === "advanced" && (
+                    <div className={styles.countLine}>
+                        <span>{filtered.length} / {totalRootCount}</span>
+                        <span>{translate("ExtraTheme.Panel.VariablesCount", "variable(s)")}</span>
+                    </div>
+                )}
                 <Masonry
                     minColumnWidth={250}
                     gap={12}
