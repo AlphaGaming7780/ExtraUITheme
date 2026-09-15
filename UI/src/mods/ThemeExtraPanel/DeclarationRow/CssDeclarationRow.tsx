@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { trigger } from "cs2/api";
 import { useLocalization } from "cs2/l10n";
 import { Color } from "cs2/bindings";
@@ -40,9 +40,21 @@ const KindTag = ({ kind }: { kind: CssDeclarationKind }) => {
 const rgba = (r: number, g: number, b: number, a: number) =>
     `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${a})`;
 
+// "rgba(r, g, b, var(--x))" - for a declaration whose alpha tracks another variable
+// (declaration.alphaVarRef) instead of a literal number, see CssColorDeclaration.alphaVarRef.
+const rgbaWithAlphaRef = (r: number, g: number, b: number, alphaVarRef: string) =>
+    `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, var(${alphaVarRef}))`;
+
 const sameColor = (a: Color, b: Color) => a.r === b.r && a.g === b.g && a.b === b.b && a.a === b.a;
 
-export const ColorDeclarationRow = (declaration: CssColorDeclaration & Variant) => {
+// memo() on every row component below - TypedListRenderer spreads a fresh {...data, ...props}
+// object into each one on every parent render (ThemeExtraPanel.tsx, Masonry.tsx), but the individual
+// scalar values inside it (declaration.r/g/b/name/kind/...) stay the same by Object.is as long as the
+// underlying declaration itself hasn't changed - memo's default shallow-per-key comparison catches
+// that even though the wrapping object is a new reference each time, and skips re-rendering ~300 of
+// these that don't actually need it on every resize/panel-update re-render (confirmed laggy in-game
+// without this).
+export const ColorDeclarationRow = memo((declaration: CssColorDeclaration & Variant) => {
     // ColorField's onChange fires continuously while dragging the wheel/gradient (every frame) -
     // tracked locally for live preview, only sent to C# (SetOverride) on close. Sending on every
     // onChange was spamming GetAllThemes (re-pulled on every binding Update()) and, with autosave
@@ -54,23 +66,39 @@ export const ColorDeclarationRow = (declaration: CssColorDeclaration & Variant) 
         if (!dirtyRef.current) setColor({ r: declaration.r, g: declaration.g, b: declaration.b, a: declaration.a });
     }, [declaration.r, declaration.g, declaration.b, declaration.a]);
 
+    // R/G/B always edit normally - alpha only does when it isn't tied to another variable (no
+    // alpha slider is shown at all otherwise, see the ColorField props below), so the value written
+    // here always keeps the var() reference intact instead of collapsing it to a literal.
+    const buildValue = (c: Color) =>
+        declaration.alphaVarRef ? rgbaWithAlphaRef(c.r, c.g, c.b, declaration.alphaVarRef) : rgba(c.r, c.g, c.b, c.a);
+
     const onChange = (value: Color) => {
         dirtyRef.current = true;
         setColor(value);
         // Live preview - applied directly as an inline style on <html>, which overrides any
         // selector's own rule (same mechanism RegisterThemePanel.tsx uses for a committed theme).
         // Only C# doesn't hear about it until onClosePicker - see the comment above.
-        document.documentElement.style.setProperty(declaration.name, rgba(value.r, value.g, value.b, value.a));
+        document.documentElement.style.setProperty(declaration.name, buildValue(value));
     };
 
     const onClosePicker = () => {
         if (!dirtyRef.current) return;
         dirtyRef.current = false;
-        trigger("ET", "SetOverride", declaration.name, rgba(color.r, color.g, color.b, color.a));
+        trigger("ET", "SetOverride", declaration.name, buildValue(color));
     };
 
-    const valueText = sameColor(color, declaration) ? declaration.rawValue : rgba(color.r, color.g, color.b, color.a);
-    const swatch = <ColorField className={styles.swatch} value={color} onChange={onChange} onClosePicker={onClosePicker} alpha colorWheel hexInput />;
+    const valueText = sameColor(color, declaration) ? declaration.rawValue : buildValue(color);
+    const swatch = (
+        <ColorField
+            className={styles.swatch}
+            value={color}
+            onChange={onChange}
+            onClosePicker={onClosePicker}
+            alpha={!declaration.alphaVarRef}
+            colorWheel
+            hexInput
+        />
+    );
 
     if (declaration.variant === "card") {
         return (
@@ -95,9 +123,9 @@ export const ColorDeclarationRow = (declaration: CssColorDeclaration & Variant) 
             </div>
         </div>
     );
-};
+});
 
-export const UnitDeclarationRow = (declaration: CssUnitDeclaration & Variant) => {
+export const UnitDeclarationRow = memo((declaration: CssUnitDeclaration & Variant) => {
     const value = `${declaration.number} ${declaration.unit}`;
     if (declaration.variant === "card") {
         return (
@@ -118,9 +146,9 @@ export const UnitDeclarationRow = (declaration: CssUnitDeclaration & Variant) =>
             <span className={styles.valUnit}>{value}</span>
         </div>
     );
-};
+});
 
-export const NumberDeclarationRow = (declaration: CssNumberDeclaration & Variant) => {
+export const NumberDeclarationRow = memo((declaration: CssNumberDeclaration & Variant) => {
     if (declaration.variant === "card") {
         return (
             <div className={styles.varCard}>
@@ -140,9 +168,9 @@ export const NumberDeclarationRow = (declaration: CssNumberDeclaration & Variant
             <span className={styles.varValue}>{declaration.number}</span>
         </div>
     );
-};
+});
 
-export const VarReferenceDeclarationRow = (declaration: CssVarReferenceDeclaration & Variant) => {
+export const VarReferenceDeclarationRow = memo((declaration: CssVarReferenceDeclaration & Variant) => {
     if (declaration.variant === "card") {
         return (
             <div className={styles.varCard}>
@@ -162,9 +190,9 @@ export const VarReferenceDeclarationRow = (declaration: CssVarReferenceDeclarati
             <span className={styles.valRef} title={declaration.referencedVariable}>-&gt; {declaration.referencedVariable}</span>
         </div>
     );
-};
+});
 
-export const KeywordDeclarationRow = (declaration: CssKeywordDeclaration & Variant) => {
+export const KeywordDeclarationRow = memo((declaration: CssKeywordDeclaration & Variant) => {
     if (declaration.variant === "card") {
         return (
             <div className={styles.varCard}>
@@ -184,7 +212,7 @@ export const KeywordDeclarationRow = (declaration: CssKeywordDeclaration & Varia
             <span className={styles.valKeyword} title={declaration.rawValue}>{declaration.rawValue}</span>
         </div>
     );
-};
+});
 
 // Keyed by __Type (GetType().FullName from the C# CssDeclaration subclasses) - the same
 // components-map + TypedRenderer/TypedListRenderer convention ExtraPanelsRoot already uses to pick

@@ -85,10 +85,19 @@ namespace ExtraTheme.Helpers
     {
         public readonly double R, G, B, A;
 
-        public CssColorDeclaration(string selector, string name, string rawValue, double r, double g, double b, double a)
+        // Set for e.g. "rgba(42,55,83,var(--panelOpacityNormal))" - a handful of the game's own
+        // panel-background variables tie their alpha to another variable instead of a literal
+        // number. A is still populated (1.0, a display-only stand-in - the real alpha depends on
+        // AlphaVarRef's own current value, which this extractor doesn't resolve) so the row can
+        // still render a swatch; editing one of these commits a plain literal-alpha rgba() like any
+        // other color, same as picking a new value always has replaced whatever the old one was.
+        public readonly string AlphaVarRef;
+
+        public CssColorDeclaration(string selector, string name, string rawValue, double r, double g, double b, double a, string alphaVarRef = null)
             : base(selector, name, rawValue)
         {
             R = r; G = g; B = b; A = a;
+            AlphaVarRef = alphaVarRef;
         }
 
         public override CssDeclarationKind Kind => CssDeclarationKind.Color;
@@ -103,6 +112,8 @@ namespace ExtraTheme.Helpers
             writer.Write(B);
             writer.PropertyName("a");
             writer.Write(A);
+            writer.PropertyName("alphaVarRef");
+            writer.Write(AlphaVarRef ?? "");
         }
     }
 

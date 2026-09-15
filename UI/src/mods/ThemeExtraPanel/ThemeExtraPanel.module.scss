@@ -34,8 +34,11 @@
     border-bottom-color: var(--dividerColor);
 }
 
+// flex-wrap so the .actions cluster (Toolbar.module.scss) drops to its own line below the theme
+// dropdown once both can't fit on one row - see the comment on .row in ThemeExtraPanel.tsx.
 .row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     row-gap: var(--gap2);
     column-gap: var(--gap2);

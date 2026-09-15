@@ -1,4 +1,5 @@
 {
+  "--focusedColor": "#db9123",
   "--accentColorDark": "#dc8400",
   "--accentColorDark-focused": "#ffb340",
   "--accentColorDark-hover": "#eba53d",

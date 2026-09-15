@@ -22,10 +22,22 @@
     font-size: var(--fontSizeS);
     padding-top: var(--gap2);
     padding-bottom: var(--gap2);
-    padding-left: var(--gap3);
+    // Room for .searchIcon at the left edge, not just var(--gap3) like the other side.
+    padding-left: calc(var(--gap3) * 2 + 14rem);
     padding-right: var(--gap3);
     // Not `inherit` - see .modeToggle button in Toolbar.module.scss for why.
     font-family: var(--fontFamily);
+}
+
+.searchIcon {
+    position: absolute;
+    left: var(--gap3);
+    top: 50%;
+    transform: translateY(-50%);
+    width: 14rem;
+    height: 14rem;
+    --iconColor: var(--textColorDim);
+    pointer-events: none;
 }
 
 // Overlay placeholder, not the native `placeholder` attribute - `::placeholder` is unsupported in
@@ -33,7 +45,7 @@
 // pointer-events:none so clicks reach the real input underneath.
 .searchInputPlaceholder {
     position: absolute;
-    left: var(--gap3);
+    left: calc(var(--gap3) * 2 + 14rem);
     right: var(--gap3);
     top: 50%;
     transform: translateY(-50%);

@@ -11,6 +11,8 @@ namespace ExtraTheme.Systems.UI.ThemePanel
     {
         public override GameMode gameMode => GameMode.Game | GameMode.Editor | GameMode.MainMenu;
 
+        public override string Icon => Icons.ThemePanel;
+
         protected override bool m_CanFullScreen => true;
 
         public override float2 PanelMinSize => new float2(360, 300);
@@ -37,6 +39,7 @@ namespace ExtraTheme.Systems.UI.ThemePanel
             AddBinding(m_HasUnsavedChangesBinding = new GetterValueBinding<bool>("ET", "HasUnsavedChanges", () => ThemeManager.GetTheme(ET.m_Setting.ActiveThemeName)?.IsDirty ?? false));
             AddBinding(new TriggerBinding<string>("ET", "SelectTheme", SelectTheme));
             AddBinding(new TriggerBinding<string>("ET", "RenameTheme", RenameTheme));
+            AddBinding(new TriggerBinding("ET", "DeleteTheme", DeleteTheme));
             AddBinding(new TriggerBinding<string, string, bool>("ET", "ImportTheme", ImportTheme));
             AddBinding(new TriggerBinding<string, string>("ET", "SetOverride", SetOverride));
             AddBinding(new TriggerBinding<bool>("ET", "SetAutoSave", SetAutoSave));
@@ -77,6 +80,24 @@ namespace ExtraTheme.Systems.UI.ThemePanel
             ET.m_Setting.ApplyAndSave();
             m_ActiveThemeNameBinding.Update();
             m_AvailableThemesBinding.Update();
+        }
+
+        // Deletes the active theme (refuses built-ins, ThemeManager.Delete) and falls back to
+        // Default - same reasoning as ValidateActiveThemeName, just triggered by the user instead
+        // of a stale settings file. The confirm step lives entirely on the UI side
+        // (DeleteThemeDialog) - by the time this fires the user has already agreed.
+        private void DeleteTheme()
+        {
+            Theme active = ThemeManager.GetTheme(ET.m_Setting.ActiveThemeName);
+            if (active == null || active.IsBuiltIn) return;
+
+            ThemeManager.Delete(active);
+
+            ET.m_Setting.ActiveThemeName = ThemeManager.DefaultThemeName;
+            ET.m_Setting.ApplyAndSave();
+            m_ActiveThemeNameBinding.Update();
+            m_AvailableThemesBinding.Update();
+            m_HasUnsavedChangesBinding.Update();
         }
 
         // Creates (or, with overwrite, replaces) a user theme from imported JSON (a plain

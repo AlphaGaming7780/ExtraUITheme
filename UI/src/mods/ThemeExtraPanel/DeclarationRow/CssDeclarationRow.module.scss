@@ -43,9 +43,13 @@
 
 .varLabel {
     flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    min-width: 0;
+    // Not ellipsis+nowrap - text-overflow:ellipsis doesn't render in this engine (confirmed
+    // in-game: a long value hard-crops mid-word with no "…", see .valRef/.valKeyword below for the
+    // fuller writeup) - and native `title` tooltips don't work here either (see Tooltip usage in
+    // ThemeExtraPanel.tsx), so truncating would make the rest of a long name unrecoverable. Wrap
+    // instead.
+    overflow-wrap: anywhere;
     // Not a system monospace stack - cohtml's fallback for an unregistered font name doesn't cover
     // accented glyphs (é/É render as tofu).
     font-family: var(--fontFamily);
@@ -68,20 +72,32 @@
     flex: 0 0 auto;
 }
 
+// Not ellipsis+nowrap - cohtml doesn't render the "…" glyph text-overflow:ellipsis is supposed to
+// produce, it just hard-crops mid-word with nothing to show it was cut (confirmed in-game); native
+// `title` tooltips also don't render here (see Tooltip usage in ThemeExtraPanel.tsx instead), so a
+// truncated tail would be genuinely unrecoverable. max-width caps how wide this gets before
+// wrapping, rather than an unbounded flex:1 racing .varLabel for space.
 .valRef, .valKeyword {
     font-size: var(--fontSizeXS);
     color: var(--textColorDim);
     font-family: var(--fontFamily);
-    max-width: 120rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    max-width: 160rem;
+    overflow-wrap: anywhere;
     flex: 0 0 auto;
 }
 
 // "card" variant - Advanced mode's flat, ungrouped Masonry cells (no more per-selector Foldout to
 // give them a shared background/border, so each variable needs its own). "list" variant (.varRow
 // above) is unchanged, still used inside Simple mode's curated FoldoutItem groups.
+//
+// Tried content-visibility:auto + contain-intrinsic-size here (native browser-level virtualization,
+// skip layout/paint for off-screen cards) as a cheap alternative to hand-rolled virtualization -
+// measured in-game with 300+ cards: no meaningful difference on move/resize fps with vs without it
+// (28-30fps either way), so almost certainly a silent no-op in cohtml (consistent with this engine's
+// track record - :not(), IntersectionObserver, CSS multi-column are all unsupported too). Reverted;
+// see the confirmed move/resize lag scaling with card count instead (Simple mode, same panel/drag
+// code, stays 72fps throughout - only Advanced's ~300 cards drop it), which points at real manual
+// virtualization instead.
 .varCard {
     background-color: var(--sectionBackgroundColor);
     border-width: 1rem;
@@ -110,9 +126,8 @@
 .cardName {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    // Not ellipsis+nowrap - see .valRef/.valKeyword below for why (cohtml doesn't render the "…").
+    overflow-wrap: anywhere;
     font-size: var(--fontSizeXS);
     color: var(--textColorDim);
     font-family: var(--fontFamily);
@@ -167,9 +182,8 @@
     font-size: var(--fontSizeS);
     color: var(--normalTextColor);
     font-family: var(--fontFamily);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    // Not ellipsis+nowrap - see .valRef/.valKeyword above for why (cohtml doesn't render the "…").
+    overflow-wrap: anywhere;
     flex: 1;
     min-width: 0;
 }

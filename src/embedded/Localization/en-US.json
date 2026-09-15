@@ -51,5 +51,10 @@
     "ExtraTheme.Panel.Rename": "Rename",
     "ExtraTheme.Panel.RenameTitle": "Rename theme",
     "ExtraTheme.Panel.RenameEmpty": "Enter a name.",
-    "ExtraTheme.Panel.RenameTaken": "A theme with that name already exists."
+    "ExtraTheme.Panel.RenameTaken": "A theme with that name already exists.",
+
+    "ExtraTheme.Panel.Delete": "Delete",
+    "ExtraTheme.Panel.DeleteTitle": "Delete theme",
+    "ExtraTheme.Panel.DeleteDesc": "Permanently delete",
+    "ExtraTheme.Panel.DeleteDesc2": "? This can't be undone."
 }

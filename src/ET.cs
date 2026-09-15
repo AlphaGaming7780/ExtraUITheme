@@ -3,10 +3,12 @@ using Colossal.Logging;
 using ExtraLib.Debugger;
 using ExtraLib.Helpers;
 using ExtraLib.Systems.UI.ExtraPanels;
+using ExtraTheme.Helpers;
 using ExtraTheme.Systems.UI.ThemePanel;
 using Game;
 using Game.Modding;
 using Game.SceneFlow;
+using System.IO;
 using System.Reflection;
 
 namespace ExtraTheme
@@ -24,10 +26,17 @@ namespace ExtraTheme
 
         public void OnLoad(UpdateSystem updateSystem)
         {
-            log.Info(nameof(OnLoad));
+            ET.Logger.Info(nameof(OnLoad));
 
             if (GameManager.instance.modManager.TryGetExecutableAsset(this, out var asset))
-                log.Info($"Current mod asset at {asset.path}");
+            {
+                ET.Logger.Info($"Current mod asset at {asset.path}");
+                ExtraTheme.Helpers.Icons.LoadIcons(new FileInfo(asset.path).DirectoryName);
+            }
+            else
+            {
+                ET.Logger.Warn("Failed to get the executable.");
+            }
 
             m_Setting = new Setting(this);
             m_Setting.RegisterInOptionsUI();

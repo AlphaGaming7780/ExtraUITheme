@@ -2,9 +2,11 @@
 
 	<PropertyGroup>
 		<Configurations>Debug;Release</Configurations>
-	
+
 		<!--The file where mod information which is required for publishing mod on PDX mods are stored-->
 		<PublishConfigurationPath>Properties\PublishConfiguration.xml</PublishConfigurationPath>
+
+		<AdditionalFilesDirectory>Resources</AdditionalFilesDirectory>
 	</PropertyGroup>
 	
 	<!--Imports must be after PropertyGroup block-->
@@ -95,6 +97,13 @@
 			<UIFiles Include="..\bin\UI\**\*.*" />
 		</ItemGroup>
 		<Copy SourceFiles="@(UIFiles)" DestinationFiles="@(UIFiles->'$(DeployDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
+	</Target>
+
+	<Target Name="GetAdditionalFiles" AfterTargets="DeployWIP">
+		<ItemGroup>
+			<AdditionalFilesToDeploy Include="$(AdditionalFilesDirectory)\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(AdditionalFilesToDeploy)" DestinationFiles="@(AdditionalFilesToDeploy->'$(DeployDir)\%(RecursiveDir)%(Filename)%(Extension)')" />
 	</Target>
 
 </Project>

@@ -29,6 +29,10 @@ export interface CssColorDeclaration extends CssDeclaration {
     g: number;
     b: number;
     a: number;
+    // Set (non-empty) for e.g. "rgba(42,55,83,var(--panelOpacityNormal))" - alpha tracks another
+    // variable instead of a literal number. `a` above is then just a display stand-in (1.0) - see
+    // CssColorDeclaration.AlphaVarRef in CssDeclaration.cs.
+    alphaVarRef: string;
 }
 
 export interface CssUnitDeclaration extends CssDeclaration {

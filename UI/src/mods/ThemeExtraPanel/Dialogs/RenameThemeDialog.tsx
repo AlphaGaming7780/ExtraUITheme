@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useLocalization } from "cs2/l10n";
 import { trigger } from "cs2/api";
-import { Dialog } from "../../../../game-ui/common/panel/dialog/dialog";
 import { Button } from "../../../../game-ui/common/input/button/button";
 import { DialogButtonSCSS } from "../../../../game-ui/common/input/button/themes/dialog-button.module.scss";
+import { ExtraThemeDialog } from "./ExtraThemeDialog";
 import styles from "./RenameThemeDialog.module.scss";
 
 export const RenameThemeDialog = ({
@@ -36,7 +36,7 @@ export const RenameThemeDialog = ({
     };
 
     return (
-        <Dialog title={translate("ExtraTheme.Panel.RenameTitle", "Rename theme")} onClose={onClose}
+        <ExtraThemeDialog title={translate("ExtraTheme.Panel.RenameTitle", "Rename theme")} onClose={onClose}
             buttons={
                 <div className={styles.dialogButtons}>
                     <Button className={DialogButtonSCSS.button} onSelect={onClose}>{translate("ExtraTheme.Panel.Cancel", "Cancel")}</Button>
@@ -50,6 +50,6 @@ export const RenameThemeDialog = ({
                 onKeyDown={(e) => { if (e.key === "Enter") confirm(); }}
             />
             {error && <div className={styles.renameError}>{error}</div>}
-        </Dialog>
+        </ExtraThemeDialog>
     );
 };

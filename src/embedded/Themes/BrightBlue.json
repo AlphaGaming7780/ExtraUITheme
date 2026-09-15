@@ -28,6 +28,7 @@
   "--panelColorNormal": "rgba(142,174,216,var(--panelOpacityNormal))",
   "--panelRadius": "14rem",
   "--panelRadiusInner": "12rem",
+  "--focusedColor": "#2391DB",
   "--selectedColor": "#008bdc",
   "--selectedColorDark": "#006eae",
   "--selectedColor-hover": "#009ffc",

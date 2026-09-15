@@ -1,9 +1,12 @@
 // Longhand per-side/per-corner properties throughout - see ThemeExtraPanel.module.scss for why.
 
 // Layout only - the actual visual chrome lives in the classes below, since Dropdown doesn't accept
-// a className of its own.
+// a className of its own. min-width stops this shrinking to near-nothing before .row
+// (ThemeExtraPanel.module.scss) wraps .actions (Toolbar.module.scss) onto its own line - without
+// it flex would rather crush the dropdown than wrap.
 .themeSelect {
-    flex: 1;
+    flex: 1 1 160rem;
+    min-width: 160rem;
 }
 
 // Custom theme for Dropdown/DropdownToggle/DropdownItem (see dropdownTheme in ThemeExtraPanel.tsx),

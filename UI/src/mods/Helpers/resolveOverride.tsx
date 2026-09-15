@@ -21,12 +21,16 @@ export function resolveOverrideFields(overrideRaw: string): Record<string, unkno
         return patch;
     }
 
-    const rgb = raw.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]+)\s*)?\)$/i);
+    // Alpha accepts a var() reference too, e.g. "rgba(42,55,83,var(--panelOpacityNormal))" -
+    // mirrors CssVariableExtractor.cs's kRgbPattern/CssColorDeclaration.AlphaVarRef. `a` stays a
+    // display stand-in (1.0) when it's a reference, same as the C# side.
+    const rgb = raw.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*(?:([\d.]+)|var\(\s*(--[a-zA-Z0-9_-]+)\s*\))\s*)?\)$/i);
     if (rgb) {
         patch.r = parseFloat(rgb[1]) / 255;
         patch.g = parseFloat(rgb[2]) / 255;
         patch.b = parseFloat(rgb[3]) / 255;
         patch.a = rgb[4] !== undefined ? parseFloat(rgb[4]) : 1;
+        patch.alphaVarRef = rgb[5] ?? "";
         return patch;
     }
 

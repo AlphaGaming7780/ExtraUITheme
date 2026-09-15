@@ -1,0 +1,28 @@
+// Dialog (game-ui/common/panel/dialog/dialog.tsx) renders `buttons` with no wrapping/gap of its
+// own, and left-aligns them by default - width:100% lets justify-content push these right, same as
+// ExportImportDialogs.module.scss's .dialogButtonsRight.
+.dialogButtons {
+    display: flex;
+    justify-content: flex-end;
+    column-gap: 10rem;
+    width: 100%;
+}
+
+// display:flex + one <span> per chunk, not bare text siblings - cohtml doesn't flow plain text
+// nodes next to each other reliably (see ExportImportDialogs.module.scss's .desc for the fuller
+// writeup of this bug).
+.desc {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 5rem;
+    width: 100%;
+    font-size: var(--fontSizeS);
+    color: var(--textColorDim);
+    line-height: 1.5;
+}
+
+.descStrong {
+    font-weight: 700;
+    color: var(--negativeColor);
+}

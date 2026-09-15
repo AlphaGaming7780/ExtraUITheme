@@ -51,5 +51,10 @@
   "ExtraTheme.Panel.Rename": "Renommer",
   "ExtraTheme.Panel.RenameTitle": "Renommer le thème",
   "ExtraTheme.Panel.RenameEmpty": "Entre un nom.",
-  "ExtraTheme.Panel.RenameTaken": "Un thème avec ce nom existe déjà."
+  "ExtraTheme.Panel.RenameTaken": "Un thème avec ce nom existe déjà.",
+
+  "ExtraTheme.Panel.Delete": "Supprimer",
+  "ExtraTheme.Panel.DeleteTitle": "Supprimer le thème",
+  "ExtraTheme.Panel.DeleteDesc": "Supprimer définitivement",
+  "ExtraTheme.Panel.DeleteDesc2": " ? Cette action est irréversible."
 }

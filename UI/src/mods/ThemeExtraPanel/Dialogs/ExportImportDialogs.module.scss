@@ -138,12 +138,18 @@
 .textareaWrapper {
     position: relative;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
 }
 
 %dialogTextBox {
     box-sizing: border-box;
     width: 100%;
-    height: 280rem;
+    max-height: 500rem;
+    min-height: 80rem;
+    flex: 0 1 auto;
+    min-width: 0;
     overflow-y: auto;
     overflow-x: hidden;
     background: rgba(10, 15, 24, 0.5);
@@ -188,9 +194,18 @@
 }
 
 // Import's textarea has to stay a real <textarea> - it's editable (typed/pasted into), unlike
-// Export's read-only payload above.
+// Export's read-only payload above. Height is driven by JS (ImportDialog's own growTextarea, an
+// explicit inline `height` set from scrollHeight) instead of flex/content-based sizing, which
+// doesn't reliably grow a <textarea> in this engine the way it does .exportDisplay's plain <div> -
+// see ImportDialog's own comment on that. flex-shrink:0 keeps that JS-computed height from being
+// shrunk back down by the flex algorithm when space is tight - ExtraThemeDialog's own .dialogBody
+// (a plain div, scrolls fine) absorbs the overflow instead. overflow:hidden fully disables this
+// element's own internal scroll attempt, which is unreachable past one mouse-wheel notch anyway
+// (confirmed in-game) and shouldn't be needed at all now that its height always matches content.
 .exportTextarea {
     @extend %dialogTextBox;
+    overflow-x: hidden;
+    overflow-y: auto;
     resize: none;
 }
 

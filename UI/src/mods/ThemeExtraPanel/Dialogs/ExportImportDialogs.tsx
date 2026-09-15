@@ -2,10 +2,10 @@ import { useState } from "react";
 import classNames from "classnames";
 import { useLocalization } from "cs2/l10n";
 import { trigger } from "cs2/api";
-import { Dialog } from "../../../../game-ui/common/panel/dialog/dialog";
 import { Button } from "../../../../game-ui/common/input/button/button";
 import { DialogButtonSCSS } from "../../../../game-ui/common/input/button/themes/dialog-button.module.scss";
 import { setClipboard } from "../../../../game-ui/common/data-binding/app-bindings";
+import { ExtraThemeDialog } from "./ExtraThemeDialog";
 import styles from "./ExportImportDialogs.module.scss";
 
 // Plain JSON, not base64 - escape/unescape (needed for btoa(unescape(encodeURIComponent(...))))
@@ -30,7 +30,7 @@ export const ExportDialog = ({
     const count = Object.keys(overrides).length;
 
     return (
-        <Dialog wide title={translate("ExtraTheme.Panel.ExportTitle", "Export theme")} onClose={onClose}
+        <ExtraThemeDialog wide title={translate("ExtraTheme.Panel.ExportTitle", "Export theme")} onClose={onClose}
             buttons={
                 <div className={styles.footer}>
                     <span className={styles.hint}>{count} {translate("ExtraTheme.Panel.VariablesCount", "variable(s)")}</span>
@@ -45,7 +45,7 @@ export const ExportDialog = ({
                 <span className={styles.themeBadge}><span className={styles.themeDot} />{themeName}</span>
             </div>
             <div className={styles.exportDisplay}>{payload}</div>
-        </Dialog>
+        </ExtraThemeDialog>
     );
 };
 
@@ -94,7 +94,7 @@ const ImportConflictDialog = ({
     };
 
     return (
-        <Dialog title={translate("ExtraTheme.Panel.ImportConflictTitle", "A theme with that name already exists")} onClose={onCancel}
+        <ExtraThemeDialog title={translate("ExtraTheme.Panel.ImportConflictTitle", "A theme with that name already exists")} onClose={onCancel}
             buttons={
                 <div className={styles.dialogButtonsRight}>
                     <Button className={DialogButtonSCSS.button} onSelect={onCancel}>{translate("ExtraTheme.Panel.Cancel", "Cancel")}</Button>
@@ -115,7 +115,7 @@ const ImportConflictDialog = ({
                 onKeyDown={(e) => { if (e.key === "Enter") rename(); }}
             />
             {error && <div className={styles.importError}>{error}</div>}
-        </Dialog>
+        </ExtraThemeDialog>
     );
 };
 
@@ -180,7 +180,7 @@ export const ImportDialog = ({
     }
 
     return (
-        <Dialog wide title={translate("ExtraTheme.Panel.ImportTitle", "Import a theme")} onClose={onClose}
+        <ExtraThemeDialog wide title={translate("ExtraTheme.Panel.ImportTitle", "Import a theme")} onClose={onClose}
             buttons={
                 <div className={styles.dialogButtonsRight}>
                     <Button className={classNames(DialogButtonSCSS.button, DialogButtonSCSS.negative)} onSelect={onClose}>{translate("ExtraTheme.Panel.Cancel", "Cancel")}</Button>
@@ -191,6 +191,11 @@ export const ImportDialog = ({
             <div className={styles.textareaWrapper}>
                 <textarea
                     className={styles.exportTextarea}
+                    // Untested in isolation until now - a <textarea>'s visible size might be driven
+                    // by this HTML attribute (default 2) independently of any CSS height/flex we set
+                    // on it, which would explain why neither approach changed the displayed row
+                    // count. Isolated test: nothing else touched this round.
+                    rows={20}
                     value={text}
                     onChange={(e) => { setError(null); setText((e.target as HTMLTextAreaElement).value); }}
                 />
@@ -201,6 +206,6 @@ export const ImportDialog = ({
                 )}
             </div>
             {error && <div className={styles.importError}>{error}</div>}
-        </Dialog>
+        </ExtraThemeDialog>
     );
 };

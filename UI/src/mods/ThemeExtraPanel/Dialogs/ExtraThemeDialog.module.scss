@@ -1,0 +1,46 @@
+// --etDialogMaxWidth/--etDialogMaxHeight are written by usePanelDialogBounds.ts onto
+// document.documentElement (not scoped to this panel's own DOM subtree - see that file's comment on
+// why), tracking the ExtraTheme panel's real current size so a dialog can never render bigger than
+// it. overflow:auto is the fallback once content still doesn't fit even at that cap (e.g. a very
+// tall Export payload at a tiny panel size) - scrolling beats spilling past the panel's edges.
+.dialogBody {
+    box-sizing: border-box;
+    // Column flex so a child that opts in (flex:1 1 auto - see %dialogTextBox/.textareaWrapper in
+    // ExportImportDialogs.module.scss) can actually shrink to fit once max-height below gets tight,
+    // instead of staying at its own fixed height and pushing this whole box into its own scrollbar.
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: var(--etDialogMaxWidth);
+    max-height: var(--etDialogMaxHeight);
+    overflow: auto;
+    // The game's own Dialog content area normally reserves this via --contentPadding (16rem, see
+    // .dialog_E8_'s own rule) - forcing the outer chrome's width below (:global(.dialog_E8_)) makes
+    // this wrapper exactly as wide as that chrome instead of sitting inside its padding, so each
+    // dialog's own input/textarea (already width:100% of THIS box) would otherwise touch the
+    // chrome's outer edge directly. Matches that same 16rem so the gutter still looks the same as
+    // before.
+    padding-top: 16rem;
+    padding-right: 16rem;
+    padding-bottom: 16rem;
+    padding-left: 16rem;
+}
+
+// The game's own Dialog panel has a FIXED width on its own root element - confirmed in the compiled
+// CSS: `.dialog_E8_{width:calc(500rem*var(--fontScale))}` / `.dialog_E8_.wide_XFu{width:calc(650rem*
+// var(--fontScale))}` - entirely independent of content, so .dialogBody's own max-width above (which
+// only reaches content WE render) can never shrink it. Dialog doesn't forward a className for this
+// root either (same reason ThemeDropdown.module.scss/CssDeclarationRow.module.scss target compiled
+// class names directly for their own popups) - targeted here instead, !important since the `wide`
+// variant rule (two classes) otherwise outranks this single-class one on specificity.
+//
+// dialog_E8_ is the GENERIC game Dialog's own class, shared by every dialog in the whole game (not
+// something scoped to ExtraTheme) - a bare :global(.dialog_E8_) rule would also shrink unrelated
+// native dialogs (e.g. a "quit game?" confirm) any time they happened to be open, anywhere in the
+// game, forever. Scoped instead to `body.et-dialog-open`, a class ExtraThemeDialog.tsx toggles on
+// <body> only while one of THIS panel's own dialogs is mounted - narrows the (still imperfect, if a
+// native dialog opens at the exact same time as ours) blast radius from "always" to "only while we
+// have a dialog open". Re-check the class name if it stops working after a game update.
+:global(body.et-dialog-open) :global(.dialog_E8_) {
+    width: var(--etDialogMaxWidth) !important;
+}

@@ -28,13 +28,28 @@ export const Masonry = ({ items, minColumnWidth, gap }: { items: MasonryItem[]; 
     useLayoutEffect(() => {
         if (!containerRef.current) return;
         const el = containerRef.current;
+        // rAF-coalesced - a panel resize/drag can fire this callback many times before the browser
+        // paints a frame, and each call previously triggered its own setContainerWidth + a full
+        // masonry position recompute (below) synchronously. Only the latest width within a frame
+        // matters, so keep it in a plain variable and flush at most once per frame.
+        let latestWidth: number | null = null;
+        let rafId: number | null = null;
         const observer = new ResizeObserver(([entry]) => {
             if (!entry) return;
             const width = entry.contentRect.width;
-            if (width > 0) setContainerWidth(width);
+            if (width <= 0) return;
+            latestWidth = width;
+            if (rafId !== null) return;
+            rafId = requestAnimationFrame(() => {
+                rafId = null;
+                if (latestWidth !== null) setContainerWidth(latestWidth);
+            });
         });
         observer.observe(el);
-        return () => observer.disconnect();
+        return () => {
+            observer.disconnect();
+            if (rafId !== null) cancelAnimationFrame(rafId);
+        };
     }, []);
 
     useLayoutEffect(() => {
@@ -43,15 +58,23 @@ export const Masonry = ({ items, minColumnWidth, gap }: { items: MasonryItem[]; 
         // was a real source of lag on mode switch. A single observer batches every changed element
         // into one `entries` array per callback, so all height changes land in a single setHeights
         // call instead of up to 258 of them back to back.
+        //
+        // Also rAF-coalesced on top of that batching, for the same reason as the container-width
+        // observer above: pending entries accumulate into `pendingHeights` across however many raw
+        // callback firings happen within a frame, and only the single resulting setHeights update is
+        // committed once per frame instead of once per callback.
         const elementToKey = new Map<Element, string>();
-        const observer = new ResizeObserver((entries) => {
+        const pendingHeights = new Map<string, number>();
+        let rafId: number | null = null;
+        const flush = () => {
+            rafId = null;
+            if (pendingHeights.size === 0) return;
+            const toApply = new Map(pendingHeights);
+            pendingHeights.clear();
             setHeights((prev) => {
                 let changed = false;
                 const next = new Map(prev);
-                for (const entry of entries) {
-                    const key = elementToKey.get(entry.target);
-                    if (!key) continue;
-                    const height = entry.contentRect.height;
+                for (const [key, height] of toApply) {
                     if (next.get(key) !== height) {
                         next.set(key, height);
                         changed = true;
@@ -59,6 +82,14 @@ export const Masonry = ({ items, minColumnWidth, gap }: { items: MasonryItem[]; 
                 }
                 return changed ? next : prev;
             });
+        };
+        const observer = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const key = elementToKey.get(entry.target);
+                if (!key) continue;
+                pendingHeights.set(key, entry.contentRect.height);
+            }
+            if (rafId === null) rafId = requestAnimationFrame(flush);
         });
         for (const item of items) {
             const el = itemRefs.current.get(item.key);
@@ -66,7 +97,10 @@ export const Masonry = ({ items, minColumnWidth, gap }: { items: MasonryItem[]; 
             elementToKey.set(el, item.key);
             observer.observe(el);
         }
-        return () => observer.disconnect();
+        return () => {
+            observer.disconnect();
+            if (rafId !== null) cancelAnimationFrame(rafId);
+        };
         // Re-attach whenever the set of item keys changes (search/filter/mode changes the list) -
         // the refs map may point at stale/removed nodes otherwise.
         // eslint-disable-next-line react-hooks/exhaustive-deps
