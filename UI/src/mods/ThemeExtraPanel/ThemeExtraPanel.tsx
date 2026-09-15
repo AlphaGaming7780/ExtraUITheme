@@ -416,6 +416,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                     minColumnWidth={250}
                     gap={12}
                     items={masonryItems}
+                    virtualize={mode === "advanced"}
                 />
             </div>
 
