@@ -340,8 +340,11 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
             <div className={styles.content}>
                 {mode === "advanced" && (
                     <div className={styles.countLine}>
-                        <span>{filtered.length} / {totalRootCount}</span>
-                        <span>{translate("ExtraUITheme.Panel.VariablesCount", "variable(s)")}</span>
+                        <span>
+                            {(translate("ExtraUITheme.Panel.VariablesCountFraction", "{filtered} / {total} variable(s)") ?? "")
+                                .replace("{filtered}", String(filtered.length))
+                                .replace("{total}", String(totalRootCount))}
+                        </span>
                     </div>
                 )}
                 <Masonry

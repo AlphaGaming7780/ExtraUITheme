@@ -8,6 +8,7 @@ import styles from "./DeleteThemeDialog.module.scss";
 
 export const DeleteThemeDialog = ({ themeName, onClose }: { themeName: string; onClose: () => void }) => {
     const { translate } = useLocalization();
+    const [descBefore, descAfter] = (translate("ExtraUITheme.Panel.DeleteDesc", "Permanently delete {name}? This can't be undone.") ?? "").split("{name}");
 
     const confirmDelete = () => {
         trigger("EUT", "DeleteTheme");
@@ -23,9 +24,9 @@ export const DeleteThemeDialog = ({ themeName, onClose }: { themeName: string; o
                 </div>
             }>
             <div className={styles.desc}>
-                <span>{translate("ExtraUITheme.Panel.DeleteDesc", "Permanently delete")}</span>
+                <span>{descBefore}</span>
                 <span className={styles.descStrong}>"{themeName}"</span>
-                <span>{translate("ExtraUITheme.Panel.DeleteDesc2", "? This can't be undone.")}</span>
+                <span>{descAfter}</span>
             </div>
         </ExtraUIThemeDialog>
     );

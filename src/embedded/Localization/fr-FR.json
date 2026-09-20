@@ -1,7 +1,7 @@
 {
   "ExtraPanelHeaderName[ExtraUITheme.Systems.UI.ThemePanel.ThemeExtraPanel]": "ExtraUITheme",
 
-  "Options.SECTION[ExtraUITheme.ExtraUITheme.EUT]": "Extra Theme",
+  "Options.SECTION[ExtraUITheme.ExtraUITheme.EUT]": "Extra UI Theme",
   "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Themes]": "Thèmes",
   "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Recharger les thèmes",
   "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Relit vos fichiers de thème personnalisés sur le disque - utilisez ce bouton après en avoir ajouté ou modifié un sans redémarrer le jeu.",
@@ -32,7 +32,8 @@
 
   "ExtraUITheme.Panel.ExportTitle": "Exporter le thème",
   "ExtraUITheme.Panel.ExportSubtitle": "Thème :",
-  "ExtraUITheme.Panel.VariablesCount": "variable(s)",
+  "ExtraUITheme.Panel.VariablesCount": "{count} variable(s)",
+  "ExtraUITheme.Panel.VariablesCountFraction": "{filtered} / {total} variable(s)",
   "ExtraUITheme.Panel.ImportTitle": "Importer un thème",
   "ExtraUITheme.Panel.ImportDesc": "Collez le thème exporté ci-dessous.",
   "ExtraUITheme.Panel.ImportDefaultName": "Thème importé",
@@ -54,6 +55,5 @@
 
   "ExtraUITheme.Panel.Delete": "Supprimer",
   "ExtraUITheme.Panel.DeleteTitle": "Supprimer le thème",
-  "ExtraUITheme.Panel.DeleteDesc": "Supprimer définitivement",
-  "ExtraUITheme.Panel.DeleteDesc2": " ? Cette action est irréversible."
+  "ExtraUITheme.Panel.DeleteDesc": "Supprimer définitivement {name} ? Cette action est irréversible."
 }

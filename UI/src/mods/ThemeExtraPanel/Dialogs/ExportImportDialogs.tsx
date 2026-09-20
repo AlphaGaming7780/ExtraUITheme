@@ -26,7 +26,7 @@ export const ExportDialog = ({
         <ExtraUIThemeDialog wide title={translate("ExtraUITheme.Panel.ExportTitle", "Export theme")} onClose={onClose}
             buttons={
                 <div className={styles.footer}>
-                    <span className={styles.hint}>{count} {translate("ExtraUITheme.Panel.VariablesCount", "variable(s)")}</span>
+                    <span className={styles.hint}>{(translate("ExtraUITheme.Panel.VariablesCount", "{count} variable(s)") ?? "").replace("{count}", String(count))}</span>
                     <div className={styles.dialogButtons}>
                         <Button className={DialogButtonSCSS.button} onSelect={onClose}>{translate("ExtraUITheme.Panel.Close", "Close")}</Button>
                         <Button className={DialogButtonSCSS.button} onSelect={() => setClipboard(payload)}>{translate("ExtraUITheme.Panel.Copy", "Copy")}</Button>

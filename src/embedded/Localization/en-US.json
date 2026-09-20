@@ -32,7 +32,8 @@
 
     "ExtraUITheme.Panel.ExportTitle": "Export theme",
     "ExtraUITheme.Panel.ExportSubtitle": "Theme:",
-    "ExtraUITheme.Panel.VariablesCount": "variable(s)",
+    "ExtraUITheme.Panel.VariablesCount": "{count} variable(s)",
+    "ExtraUITheme.Panel.VariablesCountFraction": "{filtered} / {total} variable(s)",
     "ExtraUITheme.Panel.ImportTitle": "Import a theme",
     "ExtraUITheme.Panel.ImportDesc": "Paste the exported theme below.",
     "ExtraUITheme.Panel.ImportDefaultName": "Imported theme",
@@ -54,6 +55,5 @@
 
     "ExtraUITheme.Panel.Delete": "Delete",
     "ExtraUITheme.Panel.DeleteTitle": "Delete theme",
-    "ExtraUITheme.Panel.DeleteDesc": "Permanently delete",
-    "ExtraUITheme.Panel.DeleteDesc2": "? This can't be undone."
+    "ExtraUITheme.Panel.DeleteDesc": "Permanently delete {name}? This can't be undone."
 }
