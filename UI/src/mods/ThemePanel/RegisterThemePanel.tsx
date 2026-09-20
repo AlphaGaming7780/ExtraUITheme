@@ -4,8 +4,8 @@ import { registry } from "index";
 import { ThemeExtraPanel } from "mods/ThemeExtraPanel/ThemeExtraPanel";
 import { Theme } from "mods/ThemeExtraPanel/ThemeTypes";
 
-const availableThemes$ = bindValue<Theme[]>("ET", "AvailableThemes");
-const activeThemeName$ = bindValue<string>("ET", "ActiveThemeName");
+const availableThemes$ = bindValue<Theme[]>("EUT", "AvailableThemes");
+const activeThemeName$ = bindValue<string>("EUT", "ActiveThemeName");
 
 export const RegisterThemePanel = () => {
 

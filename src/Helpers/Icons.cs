@@ -1,7 +1,7 @@
-namespace ExtraTheme.Helpers
+namespace ExtraUITheme.Helpers
 {
     // Mirrors ExtraDetailingTools' MOD/Icons.cs - registers Resources/Icons (deployed alongside the
-    // DLL by the csproj's GetAdditionalFiles target, see ExtraTheme.csproj) as a coui:// host
+    // DLL by the csproj's GetAdditionalFiles target, see ExtraUITheme.csproj) as a coui:// host
     // location so <img src="coui://extratheme/Icons/..."> resolves in the UI.
     internal static class Icons
     {

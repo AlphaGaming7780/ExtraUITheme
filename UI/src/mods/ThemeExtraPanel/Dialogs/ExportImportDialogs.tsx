@@ -5,7 +5,7 @@ import { trigger } from "cs2/api";
 import { Button } from "../../../../game-ui/common/input/button/button";
 import { DialogButtonSCSS } from "../../../../game-ui/common/input/button/themes/dialog-button.module.scss";
 import { setClipboard } from "../../../../game-ui/common/data-binding/app-bindings";
-import { ExtraThemeDialog } from "./ExtraThemeDialog";
+import { ExtraUIThemeDialog } from "./ExtraUIThemeDialog";
 import styles from "./ExportImportDialogs.module.scss";
 
 // Plain JSON, not base64 - escape/unescape (needed for btoa(unescape(encodeURIComponent(...))))
@@ -30,22 +30,22 @@ export const ExportDialog = ({
     const count = Object.keys(overrides).length;
 
     return (
-        <ExtraThemeDialog wide title={translate("ExtraTheme.Panel.ExportTitle", "Export theme")} onClose={onClose}
+        <ExtraUIThemeDialog wide title={translate("ExtraUITheme.Panel.ExportTitle", "Export theme")} onClose={onClose}
             buttons={
                 <div className={styles.footer}>
-                    <span className={styles.hint}>{count} {translate("ExtraTheme.Panel.VariablesCount", "variable(s)")}</span>
+                    <span className={styles.hint}>{count} {translate("ExtraUITheme.Panel.VariablesCount", "variable(s)")}</span>
                     <div className={styles.dialogButtons}>
-                        <Button className={DialogButtonSCSS.button} onSelect={onClose}>{translate("ExtraTheme.Panel.Close", "Close")}</Button>
-                        <Button className={DialogButtonSCSS.button} onSelect={() => setClipboard(payload)}>{translate("ExtraTheme.Panel.Copy", "Copy")}</Button>
+                        <Button className={DialogButtonSCSS.button} onSelect={onClose}>{translate("ExtraUITheme.Panel.Close", "Close")}</Button>
+                        <Button className={DialogButtonSCSS.button} onSelect={() => setClipboard(payload)}>{translate("ExtraUITheme.Panel.Copy", "Copy")}</Button>
                     </div>
                 </div>
             }>
             <div className={styles.subtitleRow}>
-                {translate("ExtraTheme.Panel.ExportSubtitle", "Theme:")}
+                {translate("ExtraUITheme.Panel.ExportSubtitle", "Theme:")}
                 <span className={styles.themeBadge}><span className={styles.themeDot} />{themeName}</span>
             </div>
             <div className={styles.exportDisplay}>{payload}</div>
-        </ExtraThemeDialog>
+        </ExtraUIThemeDialog>
     );
 };
 
@@ -75,39 +75,39 @@ const ImportConflictDialog = ({
     const { translate } = useLocalization();
 
     const overwrite = () => {
-        trigger("ET", "ImportTheme", conflictingName, JSON.stringify(overrides), true);
+        trigger("EUT", "ImportTheme", conflictingName, JSON.stringify(overrides), true);
         onDone();
     };
 
     const rename = () => {
         const trimmed = newName.trim();
         if (trimmed.length === 0) {
-            setError(translate("ExtraTheme.Panel.RenameEmpty", "Enter a name."));
+            setError(translate("ExtraUITheme.Panel.RenameEmpty", "Enter a name."));
             return;
         }
         if (takenNames.includes(trimmed)) {
-            setError(translate("ExtraTheme.Panel.RenameTaken", "A theme with that name already exists."));
+            setError(translate("ExtraUITheme.Panel.RenameTaken", "A theme with that name already exists."));
             return;
         }
-        trigger("ET", "ImportTheme", trimmed, JSON.stringify(overrides), false);
+        trigger("EUT", "ImportTheme", trimmed, JSON.stringify(overrides), false);
         onDone();
     };
 
     return (
-        <ExtraThemeDialog title={translate("ExtraTheme.Panel.ImportConflictTitle", "A theme with that name already exists")} onClose={onCancel}
+        <ExtraUIThemeDialog title={translate("ExtraUITheme.Panel.ImportConflictTitle", "A theme with that name already exists")} onClose={onCancel}
             buttons={
                 <div className={styles.dialogButtonsRight}>
-                    <Button className={DialogButtonSCSS.button} onSelect={onCancel}>{translate("ExtraTheme.Panel.Cancel", "Cancel")}</Button>
-                    <Button className={classNames(DialogButtonSCSS.button, DialogButtonSCSS.negative)} onSelect={overwrite}>{translate("ExtraTheme.Panel.Overwrite", "Overwrite")}</Button>
-                    <Button className={DialogButtonSCSS.button} onSelect={rename}>{translate("ExtraTheme.Panel.Rename", "Rename")}</Button>
+                    <Button className={DialogButtonSCSS.button} onSelect={onCancel}>{translate("ExtraUITheme.Panel.Cancel", "Cancel")}</Button>
+                    <Button className={classNames(DialogButtonSCSS.button, DialogButtonSCSS.negative)} onSelect={overwrite}>{translate("ExtraUITheme.Panel.Overwrite", "Overwrite")}</Button>
+                    <Button className={DialogButtonSCSS.button} onSelect={rename}>{translate("ExtraUITheme.Panel.Rename", "Rename")}</Button>
                 </div>
             }>
             <div className={styles.desc}>
-                <span>{translate("ExtraTheme.Panel.ImportConflictDesc", "A theme named")}</span>
+                <span>{translate("ExtraUITheme.Panel.ImportConflictDesc", "A theme named")}</span>
                 <span className={styles.descStrong}>"{conflictingName}"</span>
-                <span>{translate("ExtraTheme.Panel.ImportConflictDesc2", "already exists. What do you want to do?")}</span>
+                <span>{translate("ExtraUITheme.Panel.ImportConflictDesc2", "already exists. What do you want to do?")}</span>
             </div>
-            <div className={styles.fieldLabel}>{translate("ExtraTheme.Panel.ImportConflictNewName", "New name (if you choose Rename)")}</div>
+            <div className={styles.fieldLabel}>{translate("ExtraUITheme.Panel.ImportConflictNewName", "New name (if you choose Rename)")}</div>
             <input
                 className={styles.importNameInput}
                 value={newName}
@@ -115,7 +115,7 @@ const ImportConflictDialog = ({
                 onKeyDown={(e) => { if (e.key === "Enter") rename(); }}
             />
             {error && <div className={styles.importError}>{error}</div>}
-        </ExtraThemeDialog>
+        </ExtraUIThemeDialog>
     );
 };
 
@@ -141,7 +141,7 @@ export const ImportDialog = ({
             parsed = null;
         }
         if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-            setError(translate("ExtraTheme.Panel.ImportError", "Invalid text - this isn't recognizable JSON."));
+            setError(translate("ExtraUITheme.Panel.ImportError", "Invalid text - this isn't recognizable JSON."));
             return;
         }
 
@@ -154,14 +154,14 @@ export const ImportDialog = ({
         const nameField = (parsed as { name?: unknown }).name;
         const name = typeof nameField === "string" && nameField.trim().length > 0
             ? nameField.trim()
-            : translate("ExtraTheme.Panel.ImportDefaultName", "Imported theme") ?? "Imported theme";
+            : translate("ExtraUITheme.Panel.ImportDefaultName", "Imported theme") ?? "Imported theme";
 
         if (takenNames.includes(name)) {
             setConflict({ name, overrides });
             return;
         }
 
-        trigger("ET", "ImportTheme", name, JSON.stringify(overrides), false);
+        trigger("EUT", "ImportTheme", name, JSON.stringify(overrides), false);
         onClose();
     };
 
@@ -180,14 +180,14 @@ export const ImportDialog = ({
     }
 
     return (
-        <ExtraThemeDialog wide title={translate("ExtraTheme.Panel.ImportTitle", "Import a theme")} onClose={onClose}
+        <ExtraUIThemeDialog wide title={translate("ExtraUITheme.Panel.ImportTitle", "Import a theme")} onClose={onClose}
             buttons={
                 <div className={styles.dialogButtonsRight}>
-                    <Button className={classNames(DialogButtonSCSS.button, DialogButtonSCSS.negative)} onSelect={onClose}>{translate("ExtraTheme.Panel.Cancel", "Cancel")}</Button>
-                    <Button className={DialogButtonSCSS.button} onSelect={doImport}>{translate("ExtraTheme.Panel.Import", "Import")}</Button>
+                    <Button className={classNames(DialogButtonSCSS.button, DialogButtonSCSS.negative)} onSelect={onClose}>{translate("ExtraUITheme.Panel.Cancel", "Cancel")}</Button>
+                    <Button className={DialogButtonSCSS.button} onSelect={doImport}>{translate("ExtraUITheme.Panel.Import", "Import")}</Button>
                 </div>
             }>
-            <div className={styles.desc}>{translate("ExtraTheme.Panel.ImportDesc", "Paste the exported theme below.")}</div>
+            <div className={styles.desc}>{translate("ExtraUITheme.Panel.ImportDesc", "Paste the exported theme below.")}</div>
             <div className={styles.textareaWrapper}>
                 <textarea
                     className={styles.exportTextarea}
@@ -201,11 +201,11 @@ export const ImportDialog = ({
                 />
                 {text.length === 0 && (
                     <span className={styles.textareaPlaceholder}>
-                        {translate("ExtraTheme.Panel.ImportPlaceholder", "Paste the exported theme here (JSON)...")}
+                        {translate("ExtraUITheme.Panel.ImportPlaceholder", "Paste the exported theme here (JSON)...")}
                     </span>
                 )}
             </div>
             {error && <div className={styles.importError}>{error}</div>}
-        </ExtraThemeDialog>
+        </ExtraUIThemeDialog>
     );
 };

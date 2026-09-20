@@ -3,19 +3,19 @@ using Colossal.Logging;
 using ExtraLib.Debugger;
 using ExtraLib.Helpers;
 using ExtraLib.Systems.UI.ExtraPanels;
-using ExtraTheme.Helpers;
-using ExtraTheme.Systems.UI.ThemePanel;
+using ExtraUITheme.Helpers;
+using ExtraUITheme.Systems.UI.ThemePanel;
 using Game;
 using Game.Modding;
 using Game.SceneFlow;
 using System.IO;
 using System.Reflection;
 
-namespace ExtraTheme
+namespace ExtraUITheme
 {
-    public class ET : IMod
+    public class EUT : IMod
     {
-        private static readonly ILog log = LogManager.GetLogger($"{nameof(ExtraTheme)}.{nameof(ET)}").SetShowsErrorsInUI(false);
+        private static readonly ILog log = LogManager.GetLogger($"{nameof(ExtraUITheme)}.{nameof(EUT)}").SetShowsErrorsInUI(false);
 #if DEBUG
         internal static Logger Logger = new(log, true);
 #else
@@ -26,22 +26,22 @@ namespace ExtraTheme
 
         public void OnLoad(UpdateSystem updateSystem)
         {
-            ET.Logger.Info(nameof(OnLoad));
+            EUT.Logger.Info(nameof(OnLoad));
 
             if (GameManager.instance.modManager.TryGetExecutableAsset(this, out var asset))
             {
-                ET.Logger.Info($"Current mod asset at {asset.path}");
-                ExtraTheme.Helpers.Icons.LoadIcons(new FileInfo(asset.path).DirectoryName);
+                EUT.Logger.Info($"Current mod asset at {asset.path}");
+                ExtraUITheme.Helpers.Icons.LoadIcons(new FileInfo(asset.path).DirectoryName);
             }
             else
             {
-                ET.Logger.Warn("Failed to get the executable.");
+                EUT.Logger.Warn("Failed to get the executable.");
             }
 
             m_Setting = new Setting(this);
             m_Setting.RegisterInOptionsUI();
 
-            AssetDatabase.global.LoadSettings(nameof(ExtraTheme), m_Setting, new Setting(this));
+            AssetDatabase.global.LoadSettings(nameof(ExtraUITheme), m_Setting, new Setting(this));
 
             ExtraLocalization.LoadLocalization(Logger, Assembly.GetExecutingAssembly(), false);
 

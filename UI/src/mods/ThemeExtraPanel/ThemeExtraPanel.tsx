@@ -28,11 +28,11 @@ import { Masonry } from "./Masonry";
 import { useCompactWidth } from "../Helpers/useCompactWidth";
 import { usePanelDialogBounds } from "../Helpers/usePanelDialogBounds";
 
-const cssDeclarations$ = bindValue<CssDeclaration[]>("ET", "CssDeclarations");
-const availableThemes$ = bindValue<Theme[]>("ET", "AvailableThemes");
-const activeThemeName$ = bindValue<string>("ET", "ActiveThemeName");
-const autoSave$ = bindValue<boolean>("ET", "AutoSave");
-const hasUnsavedChanges$ = bindValue<boolean>("ET", "HasUnsavedChanges");
+const cssDeclarations$ = bindValue<CssDeclaration[]>("EUT", "CssDeclarations");
+const availableThemes$ = bindValue<Theme[]>("EUT", "AvailableThemes");
+const activeThemeName$ = bindValue<string>("EUT", "ActiveThemeName");
+const autoSave$ = bindValue<boolean>("EUT", "AutoSave");
+const hasUnsavedChanges$ = bindValue<boolean>("EUT", "HasUnsavedChanges");
 
 type Mode = "simple" | "advanced";
 
@@ -42,7 +42,7 @@ type Mode = "simple" | "advanced";
 // src/embedded/Themes/) actually override - if a theme can change it, Simple mode should show it
 // somewhere sensible rather than only in Advanced.
 // `key` is a stable identifier (also used for expand/collapse state and as the React key) - the
-// translated label (ExtraTheme.Panel.Group[key], see embedded/Localization/*.json) is resolved at
+// translated label (ExtraUITheme.Panel.Group[key], see embedded/Localization/*.json) is resolved at
 // render time in the `groups` useMemo below, not baked in here.
 const SIMPLE_GROUPS: { key: string; names: string[] }[] = [
     { key: "PanelColors", names: ["--panelColorNormal", "--panelColorDark", "--sectionBackgroundColor", "--sectionBorderColor", "--sectionHeaderColor"] },
@@ -84,7 +84,7 @@ const dropdownTheme = {
 };
 
 export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
-    ComponentList["ExtraTheme.Systems.UI.ThemePanel.ThemeExtraPanel"] = (extraPanel: ExtraPanelType) => {
+    ComponentList["ExtraUITheme.Systems.UI.ThemePanel.ThemeExtraPanel"] = (extraPanel: ExtraPanelType) => {
         const declarations = useValue(cssDeclarations$) ?? [];
         const availableThemes = useValue(availableThemes$) ?? [];
         const activeThemeName = useValue(activeThemeName$);
@@ -92,7 +92,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const hasUnsavedChanges = useValue(hasUnsavedChanges$) ?? false;
         const { translate } = useLocalization();
 
-        // This panel's own outer box - tracked so every dialog (ExtraThemeDialog.tsx) can cap
+        // This panel's own outer box - tracked so every dialog (ExtraUIThemeDialog.tsx) can cap
         // itself to never render bigger than it, even at the panel's minimum size.
         const panelRef = useRef<HTMLDivElement>(null);
         usePanelDialogBounds(panelRef);
@@ -123,11 +123,11 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
             setActiveKinds((prev) => prev.includes(kind) ? prev.filter((k) => k !== kind) : [...prev, kind]);
         };
 
-        // Built-in themes get a translated display name (ExtraTheme.Theme[Name], see
+        // Built-in themes get a translated display name (ExtraUITheme.Theme[Name], see
         // embedded/Localization/*.json) - user themes have no locale entry, so their raw name (the
         // one the user typed when saving) is shown as-is.
         const themeDisplayName = (theme: Theme | undefined) =>
-            theme ? (theme.isBuiltIn ? translate(`ExtraTheme.Theme[${theme.name}]`, theme.name) : theme.name) : "";
+            theme ? (theme.isBuiltIn ? translate(`ExtraUITheme.Theme[${theme.name}]`, theme.name) : theme.name) : "";
 
         const activeTheme = availableThemes.find((t) => t.name === activeThemeName);
 
@@ -155,7 +155,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
             });
         }, [declarations, activeTheme]);
 
-        // Only :root is ever actually overridable - ExtraTheme's overrides always apply globally
+        // Only :root is ever actually overridable - ExtraUITheme's overrides always apply globally
         // via an inline style on <html> (RegisterThemePanel.tsx), which beats any other selector's
         // own rule regardless of which one a value happened to be shown from. The same --variable
         // name also exists under dozens of other selectors (.style--bright-blue, individual
@@ -177,7 +177,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
             return SIMPLE_GROUPS
                 .map((g) => ({
                     title: g.key,
-                    displayTitle: translate(`ExtraTheme.Panel.Group[${g.key}]`, g.key),
+                    displayTitle: translate(`ExtraUITheme.Panel.Group[${g.key}]`, g.key),
                     items: filtered.filter((d) => g.names.includes(d.name)),
                 }))
                 .filter((g) => g.items.length > 0);
@@ -239,12 +239,12 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         // Shared by each action button's <span> label and its Tooltip - translate() can return
         // null, but Tooltip's `tooltip` prop (and the old `title` fallback it replaced) want a
         // plain string.
-        const renameLabel = translate("ExtraTheme.Panel.Rename", "Rename") ?? "Rename";
-        const deleteLabel = translate("ExtraTheme.Panel.Delete", "Delete") ?? "Delete";
-        const exportLabel = translate("ExtraTheme.Panel.Export", "Export") ?? "Export";
-        const importLabel = translate("ExtraTheme.Panel.Import", "Import") ?? "Import";
-        const saveLabel = translate("ExtraTheme.Panel.Save", "Save") ?? "Save";
-        const autoSaveLabel = translate("ExtraTheme.Panel.AutoSave", "Auto-save") ?? "Auto-save";
+        const renameLabel = translate("ExtraUITheme.Panel.Rename", "Rename") ?? "Rename";
+        const deleteLabel = translate("ExtraUITheme.Panel.Delete", "Delete") ?? "Delete";
+        const exportLabel = translate("ExtraUITheme.Panel.Export", "Export") ?? "Export";
+        const importLabel = translate("ExtraUITheme.Panel.Import", "Import") ?? "Import";
+        const saveLabel = translate("ExtraUITheme.Panel.Save", "Save") ?? "Save";
+        const autoSaveLabel = translate("ExtraUITheme.Panel.AutoSave", "Auto-save") ?? "Auto-save";
 
         return (
         // Our own multi-child focus boundary for everything below - without it, the theme
@@ -275,7 +275,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                                             value={t.name}
                                             selected={t.name === activeThemeName}
                                             closeOnSelect={true}
-                                            onChange={(name) => trigger("ET", "SelectTheme", name)}
+                                            onChange={(name) => trigger("EUT", "SelectTheme", name)}
                                         >
                                             {themeDisplayName(t)}
                                         </DropdownItem>
@@ -321,7 +321,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                             </button>
                         </Tooltip>
                         <Tooltip tooltip={saveLabel}>
-                            <button className={toolbarStyles.btn} disabled={!hasUnsavedChanges} onClick={() => trigger("ET", "SaveTheme", true)}>
+                            <button className={toolbarStyles.btn} disabled={!hasUnsavedChanges} onClick={() => trigger("EUT", "SaveTheme", true)}>
                                 <TintedIcon className={toolbarStyles.btnIcon} src="Media/Glyphs/Save.svg" />
                                 {!compactActions && <span>{saveLabel}</span>}
                             </button>
@@ -335,7 +335,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                                 touch the underlying AutoSave setting, which is a global preference
                                 unrelated to whichever theme happens to be showing right now and
                                 should survive switching back to a custom theme. */}
-                                <Checkbox checked={!!activeTheme && !activeTheme.isBuiltIn && autoSave} disabled={!activeTheme || activeTheme.isBuiltIn} onChange={(value: boolean) => trigger("ET", "SetAutoSave", value)} />
+                                <Checkbox checked={!!activeTheme && !activeTheme.isBuiltIn && autoSave} disabled={!activeTheme || activeTheme.isBuiltIn} onChange={(value: boolean) => trigger("EUT", "SetAutoSave", value)} />
                                 {!compactActions && <span>{autoSaveLabel}</span>}
                             </label>
                         </Tooltip>
@@ -349,8 +349,8 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                             style={{ transform: mode === "advanced" ? "translateX(100%)" : "translateX(0%)" }}
                         />
                     </div>
-                    <button className={mode === "simple" ? toolbarStyles.active : undefined} onClick={() => setMode("simple")}><span>{translate("ExtraTheme.Panel.Simple", "Simple")}</span></button>
-                    <button className={mode === "advanced" ? toolbarStyles.active : undefined} onClick={() => setMode("advanced")}><span>{translate("ExtraTheme.Panel.Advanced", "Advanced")}</span></button>
+                    <button className={mode === "simple" ? toolbarStyles.active : undefined} onClick={() => setMode("simple")}><span>{translate("ExtraUITheme.Panel.Simple", "Simple")}</span></button>
+                    <button className={mode === "advanced" ? toolbarStyles.active : undefined} onClick={() => setMode("advanced")}><span>{translate("ExtraUITheme.Panel.Advanced", "Advanced")}</span></button>
                 </div>
 
                 <div className={searchStyles.searchInputWrapper}>
@@ -387,7 +387,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                     />
                     {search.length === 0 && (
                         <span className={searchStyles.searchInputPlaceholder}>
-                            {translate("ExtraTheme.Panel.SearchPlaceholder", "Search, e.g. panel*Color")}
+                            {translate("ExtraUITheme.Panel.SearchPlaceholder", "Search, e.g. panel*Color")}
                         </span>
                     )}
                 </div>
@@ -399,7 +399,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                             className={activeKinds.includes(kind) ? `${chipStyles.chip} ${chipStyles.active}` : chipStyles.chip}
                             onClick={() => toggleKind(kind)}
                         >
-                            {translate(`ExtraTheme.Panel.Kind[${CssDeclarationKind[kind]}]`, CssDeclarationKind[kind])}
+                            {translate(`ExtraUITheme.Panel.Kind[${CssDeclarationKind[kind]}]`, CssDeclarationKind[kind])}
                         </span>
                     ))}
                 </div>
@@ -409,7 +409,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                 {mode === "advanced" && (
                     <div className={styles.countLine}>
                         <span>{filtered.length} / {totalRootCount}</span>
-                        <span>{translate("ExtraTheme.Panel.VariablesCount", "variable(s)")}</span>
+                        <span>{translate("ExtraUITheme.Panel.VariablesCount", "variable(s)")}</span>
                     </div>
                 )}
                 <Masonry

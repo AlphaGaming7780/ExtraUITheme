@@ -1,10 +1,10 @@
 import { RefObject, useEffect } from "react";
 import { remToPx } from "./RemHelper";
 
-// Tracks `panelRef`'s real size and publishes it as --etDialogMaxWidth/--etDialogMaxHeight on
+// Tracks `panelRef`'s real size and publishes it as --eutDialogMaxWidth/--eutDialogMaxHeight on
 // document.documentElement - so ANY dialog, wherever the game's own Dialog module actually mounts
 // it in the DOM (its own full-screen PanelBackdrop, not necessarily inside our panel's own subtree
-// - see ExtraThemeDialog.tsx), can still cap itself to "never bigger than the ExtraTheme panel" via
+// - see ExtraUIThemeDialog.tsx), can still cap itself to "never bigger than the ExtraUITheme panel" via
 // a plain var() read. Same "write to documentElement, read anywhere" trick RegisterThemePanel.tsx
 // already uses for live theme colors.
 //
@@ -18,8 +18,8 @@ import { remToPx } from "./RemHelper";
 // BODY exactly matched the panel's full height would still overflow it once that chrome is added on
 // top) - an estimate, not measured from the game's own Dialog chrome; retune kHeightAllowance if a
 // dialog still pokes out toward the top/bottom in practice. Width doesn't need an equivalent
-// allowance - see ExtraThemeDialog.module.scss's :global(.dialog_E8_) rule, which forces the whole
-// outer chrome (not just the body) to exactly --etDialogMaxWidth.
+// allowance - see ExtraUIThemeDialog.module.scss's :global(.dialog_E8_) rule, which forces the whole
+// outer chrome (not just the body) to exactly --eutDialogMaxWidth.
 const kHeightAllowance = 160; // rem-equivalent units, same "1 unit ~= 1px at 1920x1080" scale as the rest of this panel's CSS (see RemHelper.tsx) - written with an explicit `px` below, so no rem<->px conversion is needed (see that comment).
 const kWidthMargin = 40;
 
@@ -40,8 +40,8 @@ export const usePanelDialogBounds = (panelRef: RefObject<HTMLElement>): void => 
             // the game's own `wide` Dialog never exceeds that itself, so a non-wide dialog on a huge
             // panel shouldn't either, rather than stretching edge-to-edge just because there's room.
             const width_ = Math.min(Math.max(0, width - kWidthMargin), remToPx(650));
-            root.setProperty("--etDialogMaxWidth", `${width_}px`);
-            root.setProperty("--etDialogMaxHeight", `${Math.max(0, height - kHeightAllowance)}px`);
+            root.setProperty("--eutDialogMaxWidth", `${width_}px`);
+            root.setProperty("--eutDialogMaxHeight", `${Math.max(0, height - kHeightAllowance)}px`);
         };
 
         const rect = el.getBoundingClientRect();

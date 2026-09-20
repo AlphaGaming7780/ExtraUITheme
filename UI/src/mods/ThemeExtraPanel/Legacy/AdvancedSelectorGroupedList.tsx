@@ -5,7 +5,7 @@
 // every individual component class...), so editing e.g. --accentColorNormal under
 // .style--bright-blue looked distinct from editing it under :root.
 //
-// That distinction turned out to be misleading for how ExtraTheme actually works: overrides only
+// That distinction turned out to be misleading for how ExtraUITheme actually works: overrides only
 // ever apply globally, via an inline style on <html> (see RegisterThemePanel.tsx / SetOverride in
 // ThemeExtraPanel.cs) - so editing any selector's copy of a variable has the exact same real-world
 // effect as editing :root's. Only :root is genuinely overridable; grouping by selector implied a

@@ -5,7 +5,7 @@ using System.IO;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
-namespace ExtraTheme.Helpers
+namespace ExtraUITheme.Helpers
 {
     // Extracts the game's CSS custom properties ("--variables") straight from its compiled
     // stylesheet on disk. cohtml's CSSRuleList only exposes `.length` (no item()/[]), so there is no
@@ -107,13 +107,13 @@ namespace ExtraTheme.Helpers
 
         public static List<CssDeclaration> ExtractAll()
         {
-            ET.Logger.Info("ExtractAll");
+            EUT.Logger.Info("ExtractAll");
             var results = new List<CssDeclaration>();
 
             string path = ResolveCssPath();
             if (!File.Exists(path))
             {
-                ET.Logger.Warn($"CssVariableExtractor: file not found at {path}");
+                EUT.Logger.Warn($"CssVariableExtractor: file not found at {path}");
                 return results;
             }
 

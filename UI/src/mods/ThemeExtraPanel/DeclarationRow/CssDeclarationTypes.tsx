@@ -1,6 +1,6 @@
 import { Typed } from "cs2/bindings";
 
-// Mirrors ExtraTheme.Helpers.CssDeclarationKind (src/Helpers/CssVariableExtractor.cs).
+// Mirrors ExtraUITheme.Helpers.CssDeclarationKind (src/Helpers/CssVariableExtractor.cs).
 export enum CssDeclarationKind {
     Color,
     Unit,
@@ -9,9 +9,9 @@ export enum CssDeclarationKind {
     Keyword,
 }
 
-// Mirrors ExtraTheme.Helpers' CssDeclaration hierarchy (src/Helpers/CssVariableExtractor.cs). Each
+// Mirrors ExtraUITheme.Helpers' CssDeclaration hierarchy (src/Helpers/CssVariableExtractor.cs). Each
 // C# subclass writes its own __Type via GetType().FullName (e.g.
-// "ExtraTheme.Helpers.CssColorDeclaration"), so a components map keyed by those exact strings can
+// "ExtraUITheme.Helpers.CssColorDeclaration"), so a components map keyed by those exact strings can
 // be used with TypedRenderer to pick the right control per concrete shape - the same mechanism
 // ExtraPanelsRoot already uses for panel content. selector/name/rawValue live directly here (not in
 // a separate row wrapper) since a CssDeclaration is never used standalone without them.

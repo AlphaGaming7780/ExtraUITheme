@@ -1,11 +1,11 @@
 using Colossal.UI.Binding;
 using ExtraLib.Systems.UI.ExtraPanels;
-using ExtraTheme.Helpers;
+using ExtraUITheme.Helpers;
 using Game;
 using System.Collections.Generic;
 using Unity.Mathematics;
 
-namespace ExtraTheme.Systems.UI.ThemePanel
+namespace ExtraUITheme.Systems.UI.ThemePanel
 {
     internal partial class ThemeExtraPanel : ExtraPanelBase
     {
@@ -27,45 +27,45 @@ namespace ExtraTheme.Systems.UI.ThemePanel
         protected override void OnCreate()
         {
             base.OnCreate();
-            ET.Logger.Info("ThemeExtraPanel OnCreate");
+            EUT.Logger.Info("ThemeExtraPanel OnCreate");
 
             ThemeManager.Initialize();
             ValidateActiveThemeName();
 
-            AddBinding(m_CssDeclarationsBinding = new GetterValueBinding<List<CssDeclaration>>("ET", "CssDeclarations", CssVariableExtractor.ExtractAll, new ListWriter<CssDeclaration>()));
-            AddBinding(m_AvailableThemesBinding = new GetterValueBinding<List<Theme>>("ET", "AvailableThemes", ThemeManager.GetAllThemes, new ListWriter<Theme>()));
-            AddBinding(m_ActiveThemeNameBinding = new GetterValueBinding<string>("ET", "ActiveThemeName", () => ET.m_Setting.ActiveThemeName));
-            AddBinding(m_AutoSaveBinding = new GetterValueBinding<bool>("ET", "AutoSave", () => m_AutoSave));
-            AddBinding(m_HasUnsavedChangesBinding = new GetterValueBinding<bool>("ET", "HasUnsavedChanges", () => ThemeManager.GetTheme(ET.m_Setting.ActiveThemeName)?.IsDirty ?? false));
-            AddBinding(new TriggerBinding<string>("ET", "SelectTheme", SelectTheme));
-            AddBinding(new TriggerBinding<string>("ET", "RenameTheme", RenameTheme));
-            AddBinding(new TriggerBinding("ET", "DeleteTheme", DeleteTheme));
-            AddBinding(new TriggerBinding<string, string, bool>("ET", "ImportTheme", ImportTheme));
-            AddBinding(new TriggerBinding<string, string>("ET", "SetOverride", SetOverride));
-            AddBinding(new TriggerBinding<bool>("ET", "SetAutoSave", SetAutoSave));
-            AddBinding(new TriggerBinding("ET", "SaveTheme", SaveTheme));
+            AddBinding(m_CssDeclarationsBinding = new GetterValueBinding<List<CssDeclaration>>("EUT", "CssDeclarations", CssVariableExtractor.ExtractAll, new ListWriter<CssDeclaration>()));
+            AddBinding(m_AvailableThemesBinding = new GetterValueBinding<List<Theme>>("EUT", "AvailableThemes", ThemeManager.GetAllThemes, new ListWriter<Theme>()));
+            AddBinding(m_ActiveThemeNameBinding = new GetterValueBinding<string>("EUT", "ActiveThemeName", () => EUT.m_Setting.ActiveThemeName));
+            AddBinding(m_AutoSaveBinding = new GetterValueBinding<bool>("EUT", "AutoSave", () => m_AutoSave));
+            AddBinding(m_HasUnsavedChangesBinding = new GetterValueBinding<bool>("EUT", "HasUnsavedChanges", () => ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName)?.IsDirty ?? false));
+            AddBinding(new TriggerBinding<string>("EUT", "SelectTheme", SelectTheme));
+            AddBinding(new TriggerBinding<string>("EUT", "RenameTheme", RenameTheme));
+            AddBinding(new TriggerBinding("EUT", "DeleteTheme", DeleteTheme));
+            AddBinding(new TriggerBinding<string, string, bool>("EUT", "ImportTheme", ImportTheme));
+            AddBinding(new TriggerBinding<string, string>("EUT", "SetOverride", SetOverride));
+            AddBinding(new TriggerBinding<bool>("EUT", "SetAutoSave", SetAutoSave));
+            AddBinding(new TriggerBinding("EUT", "SaveTheme", SaveTheme));
 
             SetPanelSize(new float2(640, 520));
         }
 
-        // Falls back to Default if ET.m_Setting.ActiveThemeName doesn't name a theme ThemeManager
+        // Falls back to Default if EUT.m_Setting.ActiveThemeName doesn't name a theme ThemeManager
         // actually knows about (a theme fork's name used to be persisted to the settings file before
         // the fork itself was ever saved - if the game closed first, the setting survived pointing
         // at nothing; SetOverride no longer does that, but a settings file from an older build can
         // still have it). Called after every (re)load of the theme cache.
         private void ValidateActiveThemeName()
         {
-            if (ThemeManager.GetTheme(ET.m_Setting.ActiveThemeName) != null) return;
-            ET.m_Setting.ActiveThemeName = ThemeManager.DefaultThemeName;
-            ET.m_Setting.ApplyAndSave();
+            if (ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName) != null) return;
+            EUT.m_Setting.ActiveThemeName = ThemeManager.DefaultThemeName;
+            EUT.m_Setting.ApplyAndSave();
         }
 
         private void SelectTheme(string name)
         {
             if (ThemeManager.GetTheme(name) == null) return;
 
-            ET.m_Setting.ActiveThemeName = name;
-            ET.m_Setting.ApplyAndSave();
+            EUT.m_Setting.ActiveThemeName = name;
+            EUT.m_Setting.ApplyAndSave();
             m_ActiveThemeNameBinding.Update();
         }
 
@@ -73,11 +73,11 @@ namespace ExtraTheme.Systems.UI.ThemePanel
         // any other known theme (ThemeManager.Rename).
         private void RenameTheme(string newName)
         {
-            Theme active = ThemeManager.GetTheme(ET.m_Setting.ActiveThemeName);
+            Theme active = ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName);
             if (!ThemeManager.Rename(active, newName)) return;
 
-            ET.m_Setting.ActiveThemeName = active.Name;
-            ET.m_Setting.ApplyAndSave();
+            EUT.m_Setting.ActiveThemeName = active.Name;
+            EUT.m_Setting.ApplyAndSave();
             m_ActiveThemeNameBinding.Update();
             m_AvailableThemesBinding.Update();
         }
@@ -88,13 +88,13 @@ namespace ExtraTheme.Systems.UI.ThemePanel
         // (DeleteThemeDialog) - by the time this fires the user has already agreed.
         private void DeleteTheme()
         {
-            Theme active = ThemeManager.GetTheme(ET.m_Setting.ActiveThemeName);
+            Theme active = ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName);
             if (active == null || active.IsBuiltIn) return;
 
             ThemeManager.Delete(active);
 
-            ET.m_Setting.ActiveThemeName = ThemeManager.DefaultThemeName;
-            ET.m_Setting.ApplyAndSave();
+            EUT.m_Setting.ActiveThemeName = ThemeManager.DefaultThemeName;
+            EUT.m_Setting.ApplyAndSave();
             m_ActiveThemeNameBinding.Update();
             m_AvailableThemesBinding.Update();
             m_HasUnsavedChangesBinding.Update();
@@ -110,8 +110,8 @@ namespace ExtraTheme.Systems.UI.ThemePanel
             Theme imported = ThemeManager.Import(name, overrides, overwrite);
             if (imported == null) return;
 
-            ET.m_Setting.ActiveThemeName = imported.Name;
-            ET.m_Setting.ApplyAndSave();
+            EUT.m_Setting.ActiveThemeName = imported.Name;
+            EUT.m_Setting.ApplyAndSave();
             m_ActiveThemeNameBinding.Update();
             m_AvailableThemesBinding.Update();
             m_HasUnsavedChangesBinding.Update();
@@ -123,7 +123,7 @@ namespace ExtraTheme.Systems.UI.ThemePanel
         // reaches disk if autosave is on or the user hits Save (SaveTheme).
         private void SetOverride(string variableName, string rawValue)
         {
-            Theme active = ThemeManager.GetTheme(ET.m_Setting.ActiveThemeName);
+            Theme active = ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName);
             if (active == null) return;
 
             if (active.IsBuiltIn)
@@ -133,7 +133,7 @@ namespace ExtraTheme.Systems.UI.ThemePanel
                 // writes one. Persisting it to the settings file this early would leave a dangling
                 // reference on disk if the game closes before that happens (see
                 // ValidateActiveThemeName).
-                ET.m_Setting.ActiveThemeName = active.Name;
+                EUT.m_Setting.ActiveThemeName = active.Name;
                 m_ActiveThemeNameBinding.Update();
             }
 
@@ -159,12 +159,12 @@ namespace ExtraTheme.Systems.UI.ThemePanel
 
         private void SaveTheme()
         {
-            Theme active = ThemeManager.GetTheme(ET.m_Setting.ActiveThemeName);
+            Theme active = ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName);
             if (active == null || !active.IsDirty) return;
             if (!ThemeManager.Save(active)) return;
 
             // Now backed by a real file - safe to persist (see ValidateActiveThemeName/SetOverride).
-            ET.m_Setting.ApplyAndSave();
+            EUT.m_Setting.ApplyAndSave();
 
             m_AvailableThemesBinding.Update();
             m_HasUnsavedChangesBinding.Update();

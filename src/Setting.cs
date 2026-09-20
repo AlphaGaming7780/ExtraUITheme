@@ -1,15 +1,15 @@
 ﻿using Colossal;
 using Colossal.IO.AssetDatabase;
-using ExtraTheme.Helpers;
+using ExtraUITheme.Helpers;
 using Game.Modding;
 using Game.Settings;
 using Game.UI;
 using Game.UI.Widgets;
 using System.Collections.Generic;
 
-namespace ExtraTheme
+namespace ExtraUITheme
 {
-    [FileLocation(nameof(ExtraTheme))]
+    [FileLocation(nameof(ExtraUITheme))]
     [SettingsUIGroupOrder(kThemesGroup)]
     [SettingsUIShowGroupName(kThemesGroup)]
     public class Setting : ModSetting
@@ -27,7 +27,7 @@ namespace ExtraTheme
 
         [SettingsUIButton]
         [SettingsUISection(kMainSection, kThemesGroup)]
-        public bool ReloadThemes { set { ET.m_ThemePanel?.ReloadThemes(); } }
+        public bool ReloadThemes { set { EUT.m_ThemePanel?.ReloadThemes(); } }
 
         public override void SetDefaults()
         {

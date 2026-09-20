@@ -32,7 +32,7 @@ const KindTag = ({ kind }: { kind: CssDeclarationKind }) => {
     const { translate } = useLocalization();
     return (
         <span className={`${styles.kindTag} ${kindTagClass[kind]}`}>
-            {translate(`ExtraTheme.Panel.Kind[${CssDeclarationKind[kind]}]`, CssDeclarationKind[kind])}
+            {translate(`ExtraUITheme.Panel.Kind[${CssDeclarationKind[kind]}]`, CssDeclarationKind[kind])}
         </span>
     );
 };
@@ -84,7 +84,7 @@ export const ColorDeclarationRow = memo((declaration: CssColorDeclaration & Vari
     const onClosePicker = () => {
         if (!dirtyRef.current) return;
         dirtyRef.current = false;
-        trigger("ET", "SetOverride", declaration.name, buildValue(color));
+        trigger("EUT", "SetOverride", declaration.name, buildValue(color));
     };
 
     const valueText = sameColor(color, declaration) ? declaration.rawValue : buildValue(color);
@@ -218,9 +218,9 @@ export const KeywordDeclarationRow = memo((declaration: CssKeywordDeclaration & 
 // components-map + TypedRenderer/TypedListRenderer convention ExtraPanelsRoot already uses to pick
 // a component per concrete data shape.
 export const cssDeclarationRowComponents: { [type: string]: (props: any) => any } = {
-    "ExtraTheme.Helpers.CssColorDeclaration": ColorDeclarationRow,
-    "ExtraTheme.Helpers.CssUnitDeclaration": UnitDeclarationRow,
-    "ExtraTheme.Helpers.CssNumberDeclaration": NumberDeclarationRow,
-    "ExtraTheme.Helpers.CssVarReferenceDeclaration": VarReferenceDeclarationRow,
-    "ExtraTheme.Helpers.CssKeywordDeclaration": KeywordDeclarationRow,
+    "ExtraUITheme.Helpers.CssColorDeclaration": ColorDeclarationRow,
+    "ExtraUITheme.Helpers.CssUnitDeclaration": UnitDeclarationRow,
+    "ExtraUITheme.Helpers.CssNumberDeclaration": NumberDeclarationRow,
+    "ExtraUITheme.Helpers.CssVarReferenceDeclaration": VarReferenceDeclarationRow,
+    "ExtraUITheme.Helpers.CssKeywordDeclaration": KeywordDeclarationRow,
 };

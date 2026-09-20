@@ -3,7 +3,7 @@ import { useLocalization } from "cs2/l10n";
 import { trigger } from "cs2/api";
 import { Button } from "../../../../game-ui/common/input/button/button";
 import { DialogButtonSCSS } from "../../../../game-ui/common/input/button/themes/dialog-button.module.scss";
-import { ExtraThemeDialog } from "./ExtraThemeDialog";
+import { ExtraUIThemeDialog } from "./ExtraUIThemeDialog";
 import styles from "./RenameThemeDialog.module.scss";
 
 export const RenameThemeDialog = ({
@@ -24,23 +24,23 @@ export const RenameThemeDialog = ({
     const confirm = () => {
         const trimmed = name.trim();
         if (trimmed.length === 0) {
-            setError(translate("ExtraTheme.Panel.RenameEmpty", "Enter a name."));
+            setError(translate("ExtraUITheme.Panel.RenameEmpty", "Enter a name."));
             return;
         }
         if (trimmed !== currentName && takenNames.includes(trimmed)) {
-            setError(translate("ExtraTheme.Panel.RenameTaken", "A theme with that name already exists."));
+            setError(translate("ExtraUITheme.Panel.RenameTaken", "A theme with that name already exists."));
             return;
         }
-        if (trimmed !== currentName) trigger("ET", "RenameTheme", trimmed);
+        if (trimmed !== currentName) trigger("EUT", "RenameTheme", trimmed);
         onClose();
     };
 
     return (
-        <ExtraThemeDialog title={translate("ExtraTheme.Panel.RenameTitle", "Rename theme")} onClose={onClose}
+        <ExtraUIThemeDialog title={translate("ExtraUITheme.Panel.RenameTitle", "Rename theme")} onClose={onClose}
             buttons={
                 <div className={styles.dialogButtons}>
-                    <Button className={DialogButtonSCSS.button} onSelect={onClose}>{translate("ExtraTheme.Panel.Cancel", "Cancel")}</Button>
-                    <Button className={DialogButtonSCSS.button} onSelect={confirm}>{translate("ExtraTheme.Panel.Rename", "Rename")}</Button>
+                    <Button className={DialogButtonSCSS.button} onSelect={onClose}>{translate("ExtraUITheme.Panel.Cancel", "Cancel")}</Button>
+                    <Button className={DialogButtonSCSS.button} onSelect={confirm}>{translate("ExtraUITheme.Panel.Rename", "Rename")}</Button>
                 </div>
             }>
             <input
@@ -50,6 +50,6 @@ export const RenameThemeDialog = ({
                 onKeyDown={(e) => { if (e.key === "Enter") confirm(); }}
             />
             {error && <div className={styles.renameError}>{error}</div>}
-        </ExtraThemeDialog>
+        </ExtraUIThemeDialog>
     );
 };

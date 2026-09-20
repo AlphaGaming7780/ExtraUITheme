@@ -2,7 +2,7 @@ using Colossal.UI.Binding;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ExtraTheme.Helpers
+namespace ExtraUITheme.Helpers
 {
     // A theme's Name is free text (whatever the user typed), independent of FileName (its on-disk
     // identity - see ThemeManager). Two separate things on purpose: Name used to be derived from

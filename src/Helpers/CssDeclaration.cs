@@ -1,7 +1,7 @@
 using Colossal.UI.Binding;
 using System;
 
-namespace ExtraTheme.Helpers
+namespace ExtraUITheme.Helpers
 {
     internal enum CssDeclarationKind
     {

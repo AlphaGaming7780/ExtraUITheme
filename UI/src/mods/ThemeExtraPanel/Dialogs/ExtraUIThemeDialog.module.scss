@@ -1,6 +1,6 @@
-// --etDialogMaxWidth/--etDialogMaxHeight are written by usePanelDialogBounds.ts onto
+// --eutDialogMaxWidth/--eutDialogMaxHeight are written by usePanelDialogBounds.ts onto
 // document.documentElement (not scoped to this panel's own DOM subtree - see that file's comment on
-// why), tracking the ExtraTheme panel's real current size so a dialog can never render bigger than
+// why), tracking the ExtraUITheme panel's real current size so a dialog can never render bigger than
 // it. overflow:auto is the fallback once content still doesn't fit even at that cap (e.g. a very
 // tall Export payload at a tiny panel size) - scrolling beats spilling past the panel's edges.
 .dialogBody {
@@ -11,8 +11,8 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    max-width: var(--etDialogMaxWidth);
-    max-height: var(--etDialogMaxHeight);
+    max-width: var(--eutDialogMaxWidth);
+    max-height: var(--eutDialogMaxHeight);
     overflow: auto;
     // The game's own Dialog content area normally reserves this via --contentPadding (16rem, see
     // .dialog_E8_'s own rule) - forcing the outer chrome's width below (:global(.dialog_E8_)) makes
@@ -35,12 +35,12 @@
 // variant rule (two classes) otherwise outranks this single-class one on specificity.
 //
 // dialog_E8_ is the GENERIC game Dialog's own class, shared by every dialog in the whole game (not
-// something scoped to ExtraTheme) - a bare :global(.dialog_E8_) rule would also shrink unrelated
+// something scoped to ExtraUITheme) - a bare :global(.dialog_E8_) rule would also shrink unrelated
 // native dialogs (e.g. a "quit game?" confirm) any time they happened to be open, anywhere in the
-// game, forever. Scoped instead to `body.et-dialog-open`, a class ExtraThemeDialog.tsx toggles on
+// game, forever. Scoped instead to `body.eut-dialog-open`, a class ExtraUIThemeDialog.tsx toggles on
 // <body> only while one of THIS panel's own dialogs is mounted - narrows the (still imperfect, if a
 // native dialog opens at the exact same time as ours) blast radius from "always" to "only while we
 // have a dialog open". Re-check the class name if it stops working after a game update.
-:global(body.et-dialog-open) :global(.dialog_E8_) {
-    width: var(--etDialogMaxWidth) !important;
+:global(body.eut-dialog-open) :global(.dialog_E8_) {
+    width: var(--eutDialogMaxWidth) !important;
 }

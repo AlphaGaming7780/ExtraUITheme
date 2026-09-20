@@ -6,13 +6,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 
-namespace ExtraTheme.Helpers
+namespace ExtraUITheme.Helpers
 {
     // Loads/saves Theme objects (see Theme.cs) from two sources, per the plan agreed on in
     // docs/ThemePanel-Design.md:
     // - Built-in themes (Default + the two legacy presets) ship embedded in the DLL
     //   (embedded/Themes/*.json), read-only, never renamed/deleted from the UI.
-    // - User themes are plain files under ModsData/ExtraTheme/Themes/*.json.
+    // - User themes are plain files under ModsData/ExtraUITheme/Themes/*.json.
     //
     // Every known theme lives in one in-memory cache (m_Themes, keyed by Name), populated once by
     // Initialize() - GetAllThemes()/GetTheme() never touch disk, so polling them from the UI (which
@@ -25,7 +25,7 @@ namespace ExtraTheme.Helpers
         private static readonly string[] BuiltInPresetNames = { "BrightBlue", "DarkGreyOrange" };
 
         private static readonly string UserThemesFolder =
-            Path.Combine(EnvPath.kUserDataPath, "ModsData", nameof(ExtraTheme), "Themes");
+            Path.Combine(EnvPath.kUserDataPath, "ModsData", nameof(ExtraUITheme), "Themes");
 
         private static Dictionary<string, Theme> m_Themes;
 
@@ -74,7 +74,7 @@ namespace ExtraTheme.Helpers
                     using Stream stream = assembly.GetManifestResourceStream(resourceName);
                     if (stream == null)
                     {
-                        ET.Logger.Error($"Missing embedded theme resource '{resourceName}'.");
+                        EUT.Logger.Error($"Missing embedded theme resource '{resourceName}'.");
                         continue;
                     }
                     using StreamReader reader = new StreamReader(stream);
@@ -83,7 +83,7 @@ namespace ExtraTheme.Helpers
                 }
                 catch (Exception ex)
                 {
-                    ET.Logger.Error($"Failed to load embedded theme '{presetName}': {ex}");
+                    EUT.Logger.Error($"Failed to load embedded theme '{presetName}': {ex}");
                 }
             }
 
@@ -106,7 +106,7 @@ namespace ExtraTheme.Helpers
             }
             catch (Exception ex)
             {
-                ET.Logger.Error($"Failed to load user theme from {path}: {ex}");
+                EUT.Logger.Error($"Failed to load user theme from {path}: {ex}");
                 return null;
             }
         }
