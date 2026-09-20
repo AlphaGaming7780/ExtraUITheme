@@ -43,8 +43,7 @@
     "ExtraUITheme.Panel.ImportError": "Invalid text - this isn't recognizable JSON.",
 
     "ExtraUITheme.Panel.ImportConflictTitle": "A theme with that name already exists",
-    "ExtraUITheme.Panel.ImportConflictDesc": "A theme named",
-    "ExtraUITheme.Panel.ImportConflictDesc2": "already exists. What do you want to do?",
+    "ExtraUITheme.Panel.ImportConflictDesc": "A theme named {name} already exists. What do you want to do?",
     "ExtraUITheme.Panel.ImportConflictNewName": "New name (if you choose Rename)",
     "ExtraUITheme.Panel.Overwrite": "Overwrite",
 

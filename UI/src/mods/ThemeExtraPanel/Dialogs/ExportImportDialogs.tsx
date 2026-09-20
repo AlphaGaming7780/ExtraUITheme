@@ -65,6 +65,7 @@ const ImportConflictDialog = ({
     const [newName, setNewName] = useState(() => suggestAvailableName(conflictingName, takenNames));
     const [error, setError] = useState<string | null>(null);
     const { translate } = useLocalization();
+    const [descBefore, descAfter] = (translate("ExtraUITheme.Panel.ImportConflictDesc", "A theme named {name} already exists. What do you want to do?") ?? "").split("{name}");
 
     const overwrite = () => {
         trigger("EUT", "ImportTheme", conflictingName, JSON.stringify(overrides), true);
@@ -95,9 +96,9 @@ const ImportConflictDialog = ({
                 </div>
             }>
             <div className={styles.desc}>
-                <span>{translate("ExtraUITheme.Panel.ImportConflictDesc", "A theme named")}</span>
+                <span>{descBefore}</span>
                 <span className={styles.descStrong}>"{conflictingName}"</span>
-                <span>{translate("ExtraUITheme.Panel.ImportConflictDesc2", "already exists. What do you want to do?")}</span>
+                <span>{descAfter}</span>
             </div>
             <div className={styles.fieldLabel}>{translate("ExtraUITheme.Panel.ImportConflictNewName", "New name (if you choose Rename)")}</div>
             <input

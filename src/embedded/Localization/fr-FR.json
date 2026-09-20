@@ -4,7 +4,7 @@
   "Options.SECTION[ExtraUITheme.ExtraUITheme.EUT]": "Extra Theme",
   "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Themes]": "Thèmes",
   "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Recharger les thèmes",
-  "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Relit vos fichiers de thème personnalisés sur le disque - utilise ce bouton après en avoir ajouté ou modifié un sans redémarrer le jeu.",
+  "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Relit tes fichiers de thème personnalisés sur le disque - utilise ce bouton après en avoir ajouté ou modifié un sans redémarrer le jeu.",
 
   "ExtraUITheme.Theme[Default]": "Défaut",
   "ExtraUITheme.Theme[BrightBlue]": "Bleu vif",
@@ -43,8 +43,7 @@
   "ExtraUITheme.Panel.ImportError": "Texte invalide - ce n'est pas du JSON reconnaissable.",
 
   "ExtraUITheme.Panel.ImportConflictTitle": "Un thème avec ce nom existe déjà",
-  "ExtraUITheme.Panel.ImportConflictDesc": "Un thème nommé",
-  "ExtraUITheme.Panel.ImportConflictDesc2": "existe déjà. Que veux-tu faire ?",
+  "ExtraUITheme.Panel.ImportConflictDesc": "Un thème nommé {name} existe déjà. Que veux-tu faire ?",
   "ExtraUITheme.Panel.ImportConflictNewName": "Nouveau nom (si tu choisis Renommer)",
   "ExtraUITheme.Panel.Overwrite": "Écraser",
 
