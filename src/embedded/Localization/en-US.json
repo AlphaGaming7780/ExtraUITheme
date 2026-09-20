@@ -1,7 +1,7 @@
 {
     "ExtraPanelHeaderName[ExtraUITheme.Systems.UI.ThemePanel.ThemeExtraPanel]": "ExtraUITheme",
 
-    "Options.SECTION[ExtraUITheme.ExtraUITheme.EUT]": "Extra Theme",
+    "Options.SECTION[ExtraUITheme.ExtraUITheme.EUT]": "Extra UI Theme",
     "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Themes]": "Themes",
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Reload themes",
     "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Re-scans your custom theme files on disk - use this after adding or editing one without restarting the game.",
