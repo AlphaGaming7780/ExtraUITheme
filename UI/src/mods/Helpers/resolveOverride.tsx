@@ -1,11 +1,4 @@
-// Best-effort re-derivation of a CssDeclaration's typed fields (r/g/b/a, number/unit,
-// referencedVariable) from an override's raw string - mirrors (a simplified subset of)
-// CssVariableExtractor.Classify() on the C# side, since the row components render from those
-// typed fields, not from rawValue alone (e.g. UnitDeclarationRow shows `number unit`, not
-// rawValue). Falls back to just patching rawValue when the override doesn't match a recognized
-// shape (e.g. `rgba(0,0,0,var(--panelOpacityDark))` - a var() reference nested inside a color
-// component isn't resolved here) - the row keeps its base swatch/number in that case, which is a
-// reasonable degradation since the text itself still shows the real override.
+// Best-effort re-derivation of a CssDeclaration's typed fields from an override's raw string - mirrors CssVariableExtractor.Classify() on the C# side.
 export function resolveOverrideFields(overrideRaw: string): Record<string, unknown> {
     const raw = overrideRaw.trim();
     const patch: Record<string, unknown> = { rawValue: overrideRaw };
@@ -21,9 +14,7 @@ export function resolveOverrideFields(overrideRaw: string): Record<string, unkno
         return patch;
     }
 
-    // Alpha accepts a var() reference too, e.g. "rgba(42,55,83,var(--panelOpacityNormal))" -
-    // mirrors CssVariableExtractor.cs's kRgbPattern/CssColorDeclaration.AlphaVarRef. `a` stays a
-    // display stand-in (1.0) when it's a reference, same as the C# side.
+    // Alpha accepts a var() reference too - `a` stays a 1.0 display stand-in when it's a reference, same as the C# side.
     const rgb = raw.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*(?:([\d.]+)|var\(\s*(--[a-zA-Z0-9_-]+)\s*\))\s*)?\)$/i);
     if (rgb) {
         patch.r = parseFloat(rgb[1]) / 255;

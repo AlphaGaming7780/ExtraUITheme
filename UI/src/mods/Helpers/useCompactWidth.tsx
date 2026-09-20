@@ -1,10 +1,7 @@
 import { RefObject, useEffect, useState } from "react";
 import { remToPx } from "./RemHelper";
 
-// True once `ref`'s element measures narrower than `thresholdRem` (converted to real px via
-// remToPx - ResizeObserver reports device pixels, not rem, see RemHelper.tsx). Used by the toolbar
-// to switch its action buttons to icon-only once there isn't room for icon+label side by side next
-// to the theme dropdown.
+// True once `ref`'s element measures narrower than `thresholdRem` - used to switch the toolbar to icon-only.
 export const useCompactWidth = (ref: RefObject<HTMLElement>, thresholdRem: number): boolean => {
     const [compact, setCompact] = useState(false);
 

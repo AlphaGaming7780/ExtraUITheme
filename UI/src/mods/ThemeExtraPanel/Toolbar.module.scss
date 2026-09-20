@@ -1,9 +1,6 @@
 // Longhand per-side/per-corner properties throughout - see ThemeExtraPanel.module.scss for why.
 
-// Cluster of the 4 action buttons + auto-save - kept as one flex item within .row
-// (ThemeExtraPanel.module.scss) so, when the panel gets narrow, the whole group wraps onto its own
-// line below the theme dropdown instead of squeezing it - see the comment above .row in
-// ThemeExtraPanel.tsx. Wraps internally too if even one line isn't enough room.
+// Cluster of the 4 action buttons + auto-save - one flex item within .row, so it wraps onto its own line below the dropdown when the panel is narrow.
 .actions {
     display: flex;
     flex-wrap: wrap;
@@ -48,7 +45,7 @@
     --iconColor: var(--textColorDisabled);
 }
 
-// TintedIcon (Save/Rename) - a flat, tintable mask-image, see tinted-icon.tsx.
+// TintedIcon (Save/Rename) - a flat, tintable mask-image.
 .btnIcon {
     flex: 0 0 auto;
     width: 14rem;
@@ -56,8 +53,7 @@
     --iconColor: var(--normalTextColor);
 }
 
-// Plain <img> (Export/Import) - keeps Export.svg/Import.svg's own green/orange accent color
-// instead of being flattened to a single tint like .btnIcon above.
+// Plain <img> (Export/Import) - keeps their own accent color instead of being flattened to a single tint like .btnIcon above.
 .btnIconImg {
     flex: 0 0 auto;
     width: 14rem;
@@ -90,18 +86,11 @@
     border-bottom-left-radius: var(--panelRadiusInner);
     padding: 2rem;
     row-gap: 2rem;
-    // 0, not 2rem - see .modeToggleIndicator's own comment on why the pill's translateX(100%) needs
-    // the two button slots flush against each other.
+    // 0, not 2rem - the pill's translateX(100%) needs the two button slots flush against each other.
     column-gap: 0;
 }
 
-// Positions the indicator pill's containing block exactly over the two buttons' own row, excluding
-// .modeToggle's own padding - via literal rem offsets matching that padding, not width:%/calc(). For
-// an absolutely positioned box, percentage width/left resolve against the ancestor's PADDING box
-// (content + its own padding), not the content box the buttons actually lay out in - so a bare
-// width:50% set directly on .modeToggleIndicator below, with .modeToggle as its positioned ancestor,
-// would come out exactly .modeToggle's own padding too wide. This wrapper carries no padding of its
-// own, so the pill inside it (width:50%) resolves cleanly against the real button-row width instead.
+// A padding-free wrapper so the pill inside (width:50%) resolves against the real button-row width, since percentage width would otherwise include .modeToggle's own padding.
 .modeToggleIndicatorTrack {
     position: absolute;
     top: 2rem;
@@ -111,13 +100,7 @@
     pointer-events: none;
 }
 
-// The actual sliding pill - width:50% + transform:translateX(0%|100%) (ThemeExtraPanel.tsx), not
-// left/width measured in JS via ResizeObserver (the previous approach). translateX(N%) moves by a
-// percentage of the ELEMENT'S OWN rendered width, which both browsers and cohtml keep exactly equal
-// to half the track's width at every panel size with no JS involved - so there's no measured value
-// that can ever fall out of sync with an in-progress resize (the previous approach's actual bug),
-// and no calc() mixing a percentage with another unit (the confirmed cohtml crash - see
-// SearchBar.module.scss's own note on that) is needed either.
+// The sliding pill - width:50% + transform:translateX(0%|100%), not left/width measured in JS, so it can never fall out of sync during a resize.
 .modeToggleIndicator {
     position: absolute;
     top: 0;
@@ -138,8 +121,7 @@
     z-index: 1;
     flex: 1;
     border: none;
-    // Always transparent now - .modeToggleIndicator behind provides the active background, sliding
-    // between the two buttons instead of each one toggling its own on/off.
+    // Always transparent - .modeToggleIndicator behind provides the active background, sliding between the two buttons.
     background: transparent;
     color: var(--textColorDim);
     font-size: var(--fontSizeS);
@@ -152,26 +134,14 @@
     border-top-right-radius: calc(var(--panelRadiusInner) - 2rem);
     border-bottom-right-radius: calc(var(--panelRadiusInner) - 2rem);
     border-bottom-left-radius: calc(var(--panelRadiusInner) - 2rem);
-    // Not `inherit` - cohtml doesn't resolve that CSS-wide keyword for font-family and falls back to
-    // a font that can't shape accented glyphs (é/É rendered as tofu here and on .searchInput).
+    // Not `inherit` - cohtml doesn't resolve that CSS-wide keyword for font-family and falls back to a font that can't shape accented glyphs.
     font-family: var(--fontFamily);
     transition: color 150ms ease, transform 100ms ease;
 }
-// A subtle highlight bar behind the hovered button instead of a text-color change, which read as
-// barely different from the resting state. Reuses --highlightLightBlue - the softer of this panel's
-// highlight colors (see SIMPLE_GROUPS' AccentColors in ThemeExtraPanel.tsx), already meant for
-// exactly this "lighter accent" role rather than inventing a new one.
 .modeToggle button:hover {
-    background-color: var(--hoverColorBright);// rgba(255, 255, 255, 0.15);//var(--highlightLightBlue);
-    // Not --panelColorDark - it's semi-transparent (rgba tied to --panelOpacityDark), so text would
-    // read washed out. --menuText1Inverted is meant for exactly this ("Inverted" = dark text for a
-    // light background), and is solid.
-    // color: var(--menuText1Inverted);
+    background-color: var(--hoverColorBright);
 }
-// :not() isn't supported in this engine (confirmed in-game: "Unsupported CSS pseudo class selector
-// encountered: not") - the active button already has its own solid .modeToggleIndicator bar behind
-// it, so undo the hover highlight above for it via plain specificity instead (.active:hover beats
-// the plain :hover rule above on class count, no :not() needed).
+// :not() isn't supported in this engine, so undo the hover highlight for the active button via plain specificity instead.
 .modeToggle button.active:hover {
     background-color: transparent;
     color: var(--normalTextColor);

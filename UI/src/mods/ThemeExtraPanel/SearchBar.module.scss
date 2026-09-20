@@ -40,9 +40,7 @@
     pointer-events: none;
 }
 
-// Overlay placeholder, not the native `placeholder` attribute - `::placeholder` is unsupported in
-// this engine (no way to color it). Positioned to line up with .searchInput's own padding;
-// pointer-events:none so clicks reach the real input underneath.
+// Overlay placeholder, not the native `placeholder` attribute - `::placeholder` is unsupported in this engine.
 .searchInputPlaceholder {
     position: absolute;
     left: calc(var(--gap3) * 2 + 14rem);

@@ -1,12 +1,4 @@
-// cohtml 2.2.1.3 doesn't support shorthand properties (background, border, border-radius, padding,
-// margin, gap...) containing var()/calc() - the whole declaration is silently dropped. Every
-// shorthand below (and in the sibling .module.scss files for this panel) is exploded into its
-// longhand per-side/per-corner form instead. A shorthand with only literal values is fine as-is.
-// var(--name, fallback) (the two-argument form) isn't supported either - only var(--name) works.
-// Generic `cursor` keywords (pointer, grab, ...) are also no-ops - only `cursor: url(cursor://name)`
-// with a name the engine actually registers works (see index.css's own cursor:url() rules for the
-// full list, all game-tool cursors - bulldoze, curve, resize handles - no plain hand/pointer exists).
-// So clickable elements here just don't set `cursor` at all.
+// cohtml doesn't support shorthand properties containing var()/calc() (silently dropped), so every shorthand below is exploded into longhand form.
 
 .themeExtraPanelContent {
     display: flex;
@@ -21,8 +13,7 @@
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
-    // --gap2 (2-4px) is fine for tight inline spacing but too small to separate whole toolbar rows -
-    // --gap4 is the section-level gap here.
+    // --gap2 is fine for tight inline spacing but too small to separate whole toolbar rows - --gap4 is the section-level gap here.
     row-gap: var(--gap4);
     column-gap: var(--gap4);
     padding-top: var(--gap3);
@@ -34,8 +25,7 @@
     border-bottom-color: var(--dividerColor);
 }
 
-// flex-wrap so the .actions cluster (Toolbar.module.scss) drops to its own line below the theme
-// dropdown once both can't fit on one row - see the comment on .row in ThemeExtraPanel.tsx.
+// flex-wrap so the .actions cluster drops to its own line below the theme dropdown once both can't fit on one row.
 .row {
     display: flex;
     flex-wrap: wrap;
@@ -44,8 +34,7 @@
     column-gap: var(--gap2);
 }
 
-// Masonry grid: CSS `column-width` is non-functional in cohtml 2.2.1.3 (silent no-op) - layout is
-// computed in JS instead, see Masonry.tsx.
+// Masonry grid: CSS `column-width` is non-functional in cohtml, so layout is computed in JS instead (see Masonry.tsx).
 .content {
     flex: 1 1 auto;
     overflow-y: auto;
@@ -55,10 +44,7 @@
     padding-left: var(--gap3);
 }
 
-// display:flex + one <span> per chunk, not bare text siblings - cohtml doesn't flow plain text
-// nodes next to each other reliably (see ExportImportDialogs.module.scss's .desc for the fuller
-// writeup of this same bug); flex lays out each span as its own item regardless of its own
-// display value, sidestepping cohtml's inline text flow entirely.
+// display:flex + one <span> per chunk, not bare text siblings - cohtml doesn't flow plain text nodes next to each other reliably.
 .countLine {
     display: flex;
     flex-wrap: wrap;
@@ -71,9 +57,7 @@
 
 .group {
     width: 100%;
-    // Clips .groupHeader's hover background to this card's rounded corners (the header itself has
-    // no border-radius, since whether its top corners alone or all four round depends on
-    // expanded/collapsed state).
+    // Clips .groupHeader's hover background to this card's rounded corners.
     overflow: hidden;
     background-color: var(--sectionBackgroundColor);
     border-width: 1rem;
@@ -88,8 +72,7 @@
     border-bottom-left-radius: var(--panelRadiusInner);
 }
 
-// Header for a masonry group's FoldoutItem - built by hand (title, count badge, toggle arrow)
-// instead of the game's own FoldoutItemHeader, see the comment in ThemeExtraPanel.tsx for why.
+// Header for a masonry group's FoldoutItem - built by hand instead of the game's own FoldoutItemHeader.
 .groupHeader {
     display: flex;
     align-items: center;
@@ -120,10 +103,7 @@
     border-radius: 999rem;
 }
 
-// group.title (a raw CSS selector in Advanced mode) can be one long word with no natural break
-// point, so it overflows instead of wrapping. overflow-wrap: anywhere (not word-break: break-all)
-// still prefers breaking at an existing space/hyphen first. min-width: 0 is needed too - flex
-// children default to min-width: auto, which refuses to shrink below content size.
+// group.title can be one long word with no natural break point - min-width:0 lets this flex child actually shrink to wrap it.
 .groupTitle {
     flex: 1;
     overflow-wrap: anywhere;

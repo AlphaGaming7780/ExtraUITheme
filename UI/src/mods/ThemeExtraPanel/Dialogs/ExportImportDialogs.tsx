@@ -8,14 +8,7 @@ import { setClipboard } from "../../../../game-ui/common/data-binding/app-bindin
 import { ExtraUIThemeDialog } from "./ExtraUIThemeDialog";
 import styles from "./ExportImportDialogs.module.scss";
 
-// Plain JSON, not base64 - escape/unescape (needed for btoa(unescape(encodeURIComponent(...))))
-// aren't implemented in cohtml's JS runtime and crash the whole UI if used.
-//
-// Transports the theme's name + overrides map ({"name": "...", "overrides": {"--var": "value"}}),
-// the same shape ThemeManager saves to disk (plus the name) - not the full CssDeclaration list
-// Simple/Advanced mode renders, which carries derived/typed fields (r/g/b/a, selector, kind...) that
-// only make sense alongside the game's own live CSS.
-
+// Plain JSON, not base64 - escape/unescape aren't implemented in cohtml's JS runtime and crash the whole UI if used.
 export const ExportDialog = ({
     themeName,
     overrides,
@@ -49,8 +42,7 @@ export const ExportDialog = ({
     );
 };
 
-// "X (copy)", "X (copy 2)", ... until a free name is found - same convention as the C#-side fork
-// naming (ThemeManager.GenerateForkName), kept identical so the app only has one such pattern.
+// "X (copy)", "X (copy 2)", ... - same convention as the C#-side fork naming (ThemeManager.Fork).
 const suggestAvailableName = (base: string, takenNames: string[]): string => {
     let candidate = `${base} (copy)`;
     for (let n = 2; takenNames.includes(candidate); n++) candidate = `${base} (copy ${n})`;
@@ -123,8 +115,7 @@ export const ImportDialog = ({
     takenNames,
     onClose,
 }: {
-    // Every existing theme's name (built-in + user) - a fresh import always creates a NEW theme, so
-    // (unlike rename) the current active theme's own name is taken too.
+    // Every existing theme's name - a fresh import always creates a NEW theme, so the active theme's own name is taken too.
     takenNames: string[];
     onClose: () => void;
 }) => {
@@ -145,8 +136,7 @@ export const ImportDialog = ({
             return;
         }
 
-        // {name, overrides} (the current export shape) - or, for flexibility, a bare overrides map
-        // with no wrapper and no name at all.
+        // {name, overrides} (the current export shape) - or, for flexibility, a bare overrides map with no wrapper.
         const overridesField = (parsed as { overrides?: unknown }).overrides;
         const overrides = (overridesField && typeof overridesField === "object" && !Array.isArray(overridesField)
             ? overridesField
@@ -165,8 +155,7 @@ export const ImportDialog = ({
         onClose();
     };
 
-    // A name collision swaps this dialog's own content for the conflict resolution one (Cancel/
-    // Overwrite/Rename), rather than opening a second dialog on top - only one is ever open.
+    // A name collision swaps this dialog's own content for the conflict resolution one, rather than opening a second dialog.
     if (conflict) {
         return (
             <ImportConflictDialog
@@ -191,10 +180,6 @@ export const ImportDialog = ({
             <div className={styles.textareaWrapper}>
                 <textarea
                     className={styles.exportTextarea}
-                    // Untested in isolation until now - a <textarea>'s visible size might be driven
-                    // by this HTML attribute (default 2) independently of any CSS height/flex we set
-                    // on it, which would explain why neither approach changed the displayed row
-                    // count. Isolated test: nothing else touched this round.
                     rows={20}
                     value={text}
                     onChange={(e) => { setError(null); setText((e.target as HTMLTextAreaElement).value); }}

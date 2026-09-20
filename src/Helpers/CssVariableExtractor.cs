@@ -7,14 +7,10 @@ using UnityEngine;
 
 namespace ExtraUITheme.Helpers
 {
-    // Extracts the game's CSS custom properties ("--variables") straight from its compiled
-    // stylesheet on disk. cohtml's CSSRuleList only exposes `.length` (no item()/[]), so there is no
-    // way to enumerate these from the mod's own JS/React side at runtime - reading the shipped CSS
-    // file directly from C# sidesteps that entirely.
+    // Extracts the game's CSS custom properties from its compiled stylesheet on disk - cohtml's CSSRuleList can't be enumerated from JS/React at runtime.
     internal static class CssVariableExtractor
     {
-        // Relative to Application.dataPath (i.e. ".../Cities2_Data"), so this resolves correctly
-        // regardless of where Steam installed the game.
+        // Relative to Application.dataPath (".../Cities2_Data"), so this works regardless of the Steam install location.
         private const string kRelativeCssPath = "Content/Game/UI/index.css";
 
         private static readonly Regex kDeclarationPattern = new Regex(
@@ -29,10 +25,7 @@ namespace ExtraUITheme.Helpers
             @"^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$",
             RegexOptions.Compiled);
 
-        // Alpha (group 4 or 5) accepts a var() reference as well as a literal number/percent - a
-        // handful of the game's own variables (--panelColorNormal and friends) tie their alpha to
-        // another variable, e.g. "rgba(42,55,83,var(--panelOpacityNormal))", instead of a fixed
-        // value. Group 4 wins when the alpha is a literal; group 5 carries the var() name otherwise.
+        // Alpha (group 4 or 5) accepts a var() reference as well as a literal, e.g. "rgba(42,55,83,var(--panelOpacityNormal))".
         private static readonly Regex kRgbPattern = new Regex(
             @"^rgba?\(\s*([\d.]+%?)\s*,\s*([\d.]+%?)\s*,\s*([\d.]+%?)\s*(?:,\s*(?:([\d.]+%?)|var\(\s*(--[a-zA-Z0-9_-]+)\s*\))\s*)?\)$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -49,15 +42,7 @@ namespace ExtraUITheme.Helpers
             @"^-?\d+(?:\.\d+)?$",
             RegexOptions.Compiled);
 
-        // The standard CSS named colors, as hex - reusing ParseHexColor below rather than a
-        // separate code path. A UI-side alternative (asking the engine to resolve a color keyword
-        // itself via getComputedStyle, no table to maintain here) was tried and confirmed broken in
-        // cohtml: it returns a "valid-looking" black for EVERY value regardless of whether the
-        // engine actually recognized it - "ease" and "none" got misclassified as colors too, and
-        // real colors like "white" came back black. So: a table it is, only "black"/"white"/
-        // "transparent" actually occur in this game's own :root today, but the full set costs
-        // nothing extra and avoids silently missing one after a future game update. Looked up
-        // case-insensitively (kept lowercase here) - CSS keywords are themselves case-insensitive.
+        // Standard CSS named colors as hex - cohtml's getComputedStyle can't be trusted to resolve these itself (confirmed: returns black for any keyword).
         private static readonly Dictionary<string, string> kNamedColors = new Dictionary<string, string>
         {
             ["transparent"] = "00000000",
@@ -123,14 +108,7 @@ namespace ExtraUITheme.Helpers
             return results;
         }
 
-        // Minimal brace-aware CSS scanner (the shipped file is minified onto a single line, so a
-        // line-based approach doesn't work). Finds "<selector>{<body>}" blocks by matching braces
-        // (handling arbitrary nesting depth for @media/@supports etc.); when a block's body itself
-        // contains nested rules it recurses with the outer selector kept as context, otherwise the
-        // body is scanned directly for "--name: value;" declarations. Doesn't special-case
-        // @charset/@import (bodiless at-rules ending in ";" instead of "{...}") - if the game's CSS
-        // ever has one, it just gets glued onto the following selector's label, which is cosmetic
-        // only (declaration extraction inside the next real block is unaffected).
+        // Minimal brace-aware CSS scanner - the shipped file is minified onto one line, so line-based parsing doesn't work.
         private static void ParseRules(string css, string context, List<CssDeclaration> results)
         {
             int i = 0;
@@ -150,7 +128,6 @@ namespace ExtraUITheme.Helpers
                     else if (c == '}') depth--;
                     j++;
                 }
-                // body excludes the final matching '}' (at index j - 1)
                 string body = css.Substring(braceStart + 1, (j - 1) - (braceStart + 1));
 
                 string fullSelector = context == null ? selector : $"{context} {selector}";
@@ -258,8 +235,7 @@ namespace ExtraUITheme.Helpers
             double r = ParseColorComponent(m.Groups[1].Value, false);
             double g = ParseColorComponent(m.Groups[2].Value, false);
             double b = ParseColorComponent(m.Groups[3].Value, false);
-            // Group 5 (var() alpha, e.g. "rgba(42,55,83,var(--panelOpacityNormal))") has no literal
-            // to parse - 1.0 is just a display stand-in, see CssColorDeclaration.AlphaVarRef.
+            // Group 5 (var() alpha) has no literal to parse - see CssColorDeclaration.AlphaVarRef.
             double a = m.Groups[4].Success ? ParseColorComponent(m.Groups[4].Value, true) : 1.0;
             string alphaVarRef = m.Groups[5].Success ? m.Groups[5].Value : null;
             return new CssColorDeclaration(selector, name, rawValue, r, g, b, a, alphaVarRef);

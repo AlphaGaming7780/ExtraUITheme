@@ -1,18 +1,8 @@
 .varRow {
     display: flex;
-    // Lets the value/swatch side (colorControl/valUnit/varValue/valRef/valKeyword below) drop to its
-    // own line instead of forcing the whole row wider than its Masonry column once .varLabel's own
-    // min-width no longer leaves enough room for both on one line.
+    // Lets the value/swatch side drop to its own line instead of forcing the row wider than its Masonry column.
     flex-wrap: wrap;
-    // justify-content applies independently PER FLEX LINE in a wrapped container - on the shared
-    // line this has no visible effect (.varLabel's own flex:1 grow already eats all the free space,
-    // same as before flex-wrap existed here), but on a line where the value side wrapped onto its
-    // own alone, this is what actually pushes it to the right edge. margin-left:auto on the value
-    // side was tried first for this (the more idiomatic per-item tool) but measured in-game as a
-    // no-op specifically for a lone item on a wrapped line - left it sitting at the line's start
-    // instead. justify-content is one of the most basic, heavily-exercised flex properties (used
-    // successfully all over this panel already), so far more likely to be correctly implemented here
-    // than that narrower auto-margin-on-a-wrapped-line case.
+    // Pushes the value side to the right edge when it wraps onto its own line - margin-left:auto measured as a no-op here in-game.
     justify-content: flex-end;
     align-items: center;
     row-gap: var(--gap2);
@@ -30,20 +20,13 @@
     border-bottom: none;
 }
 
-// The color picker popup (opened from ColorField below) has no z-index of its own to hook into
-// from our own props - ColorField's internal AnchoredPopup call doesn't forward a className, unlike
-// Dropdown's (see ThemeDropdown.module.scss's .dropdownPopup for that version of this fix). Targets
-// the game's own compiled class name directly instead - tied to this exact game version's hash
-// (color-picker-container_Sj5, from game-ui/common/input/color-picker/color-field), re-check this
-// selector if it stops working after a game update. Without it our panel's own z-index:10
-// (ExtraLib's ExtraPanel) paints over the popup.
+// ColorField's popup has no z-index hook of its own, so this targets the game's compiled class name directly - re-check after a game update.
 :global(.color-picker-container_Sj5) {
     position: relative;
     z-index: 1000;
 }
 
-// ColorField renders its own swatch button at a fixed native size (40x20rem, from the game's own
-// color-field.module.scss) - not resized here, just kept from stretching/shrinking in the flex row.
+// ColorField renders its own swatch at a fixed native size - just kept from stretching/shrinking in the flex row.
 .swatch {
     flex: 0 0 auto;
 }
@@ -59,20 +42,11 @@
 
 .varLabel {
     flex: 1;
-    // A narrow Masonry column (Simple's groups can land in one as small as minColumnWidth, see
-    // ThemeExtraPanel.tsx's <Masonry minColumnWidth={250}>) used to let this shrink all the way to 0
-    // - combined with overflow-wrap:anywhere below, a long name then wrapped one character per line
-    // instead of at word/segment boundaries. This floor keeps enough room for a real word before it
-    // has to wrap.
+    // Floor keeps enough room for a real word before wrapping, so a long name doesn't wrap one character per line.
     min-width: 60rem;
-    // Not ellipsis+nowrap - text-overflow:ellipsis doesn't render in this engine (confirmed
-    // in-game: a long value hard-crops mid-word with no "…", see .valRef/.valKeyword below for the
-    // fuller writeup) - and native `title` tooltips don't work here either (see Tooltip usage in
-    // ThemeExtraPanel.tsx), so truncating would make the rest of a long name unrecoverable. Wrap
-    // instead.
+    // Not ellipsis+nowrap - text-overflow:ellipsis doesn't render in this engine, so truncating would make a long name unrecoverable.
     overflow-wrap: anywhere;
-    // Not a system monospace stack - cohtml's fallback for an unregistered font name doesn't cover
-    // accented glyphs (é/É render as tofu).
+    // Not a system monospace stack - cohtml's fallback for an unregistered font doesn't cover accented glyphs (é/É render as tofu).
     font-family: var(--fontFamily);
 }
 
@@ -80,9 +54,7 @@
     font-size: var(--fontSizeXS);
     color: var(--textColorDim);
     font-family: var(--fontFamily);
-    // Was flex:0 0 auto - never shrank, so a long rgba(...)/var(...) value forced .colorControl (and
-    // with it the whole row) wider than the column instead of wrapping. flex:1 1 auto + min-width:0
-    // lets it actually shrink and wrap within .colorControl's own max-width above.
+    // flex:1 1 auto + min-width:0 lets a long rgba(...)/var(...) value shrink and wrap instead of forcing the row wider.
     flex: 1 1 auto;
     min-width: 0;
     overflow-wrap: anywhere;
@@ -98,11 +70,7 @@
     flex: 0 0 auto;
 }
 
-// Not ellipsis+nowrap - cohtml doesn't render the "…" glyph text-overflow:ellipsis is supposed to
-// produce, it just hard-crops mid-word with nothing to show it was cut (confirmed in-game); native
-// `title` tooltips also don't render here (see Tooltip usage in ThemeExtraPanel.tsx instead), so a
-// truncated tail would be genuinely unrecoverable. max-width caps how wide this gets before
-// wrapping, rather than an unbounded flex:1 racing .varLabel for space.
+// Not ellipsis+nowrap - cohtml doesn't render "…", so a truncated tail would be unrecoverable; max-width caps width before wrapping instead.
 .valRef, .valKeyword {
     font-size: var(--fontSizeXS);
     color: var(--textColorDim);
@@ -113,18 +81,7 @@
     min-width: 0;
 }
 
-// "card" variant - Advanced mode's flat, ungrouped Masonry cells (no more per-selector Foldout to
-// give them a shared background/border, so each variable needs its own). "list" variant (.varRow
-// above) is unchanged, still used inside Simple mode's curated FoldoutItem groups.
-//
-// Tried content-visibility:auto + contain-intrinsic-size here (native browser-level virtualization,
-// skip layout/paint for off-screen cards) as a cheap alternative to hand-rolled virtualization -
-// measured in-game with 300+ cards: no meaningful difference on move/resize fps with vs without it
-// (28-30fps either way), so almost certainly a silent no-op in cohtml (consistent with this engine's
-// track record - :not(), IntersectionObserver, CSS multi-column are all unsupported too). Reverted;
-// see the confirmed move/resize lag scaling with card count instead (Simple mode, same panel/drag
-// code, stays 72fps throughout - only Advanced's ~300 cards drop it), which points at real manual
-// virtualization instead.
+// "card" variant - Advanced mode's flat, ungrouped Masonry cells, each with its own background/border since there's no shared Foldout group.
 .varCard {
     background-color: var(--sectionBackgroundColor);
     border-width: 1rem;
@@ -160,13 +117,7 @@
     font-family: var(--fontFamily);
 }
 
-// Kind tag - the only "what am I looking at" context a card has left now that it doesn't sit under
-// a labeled group header. 5 kinds (CssDeclarationKind), each its own color - not pulled from the
-// game's own --CSS-variables (unlike the rest of this panel): there's no in-game token for "this is
-// a category label", and reusing --accentColorNormal/--highlightBrightBlue for two different kinds
-// (Color and Reference) made them read as the same thing. Own fixed palette instead, picked purely
-// to stay visually distinct from each other and from the 3 semantic colors already in play elsewhere
-// (--positiveColor/--warningColor/--negativeColor).
+// Kind tag - own fixed palette (not game --CSS-variables) since there's no in-game token for a category label and reused ones read as the same thing.
 .kindTag {
     flex: 0 0 auto;
     font-size: var(--fontSizeXS);

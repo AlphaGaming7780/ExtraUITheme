@@ -12,8 +12,7 @@ export const RenameThemeDialog = ({
     onClose,
 }: {
     currentName: string;
-    // Every other theme's name (built-in + user, excluding currentName) - checked client-side so a
-    // collision shows an inline error instead of RenameTheme silently no-oping server-side.
+    // Every other theme's name, checked client-side so a collision shows an inline error instead of silently no-oping server-side.
     takenNames: string[];
     onClose: () => void;
 }) => {

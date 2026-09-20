@@ -3,11 +3,7 @@
     column-gap: 10rem;
 }
 
-// Import/ImportConflict pass .dialogButtons straight as Dialog's whole `buttons` slot (no wrapping
-// .footer), which left-aligns by default - width:100% lets justify-content push these right, matching
-// the mockup. NOT used inside Export's .footer below: .footer is already the full-width flex row
-// (space-between, hint + buttons), so giving its .dialogButtons child width:100% too would make it
-// try to fill the whole footer and overflow past the dialog's edge.
+// Import/ImportConflict pass .dialogButtons straight as Dialog's `buttons` slot - width:100% pushes them right. Not used inside Export's .footer, which is already full-width.
 .dialogButtonsRight {
     display: flex;
     justify-content: flex-end;
@@ -15,8 +11,7 @@
     width: 100%;
 }
 
-// Export's footer: a hint on the left, the button pair on the right - Dialog's `buttons` prop is
-// the whole footer row, no built-in gap/split of its own.
+// Export's footer: a hint on the left, the button pair on the right - Dialog's `buttons` prop is the whole footer row.
 .footer {
     display: flex;
     align-items: center;
@@ -34,9 +29,7 @@
     display: flex;
     align-items: center;
     column-gap: var(--gap2);
-    // width:100% - without it this shrinks to fit its content and centers inside Dialog's own body
-    // layout instead of sitting flush left (the same reason .exportTextarea/.importNameInput below
-    // set it too).
+    // Without width:100% this shrinks to fit content and centers inside Dialog's body instead of sitting flush left.
     width: 100%;
     font-size: var(--fontSizeS);
     color: var(--textColorDim);
@@ -44,9 +37,7 @@
 }
 
 .themeBadge {
-    // Not inline-flex - cohtml doesn't parse that display value (falls back to the class having no
-    // layout at all). Already a flex item inside .subtitleRow's own flex row, so plain `flex` still
-    // shrinks to content instead of stretching full-width.
+    // Not inline-flex - cohtml doesn't parse that display value at all.
     display: flex;
     align-items: center;
     column-gap: 5rem;
@@ -75,16 +66,11 @@
     flex: 0 0 auto;
 }
 
-// display:inline on .descStrong alone wasn't enough to keep "before text" / name / "after text" on
-// one flowing line (still stacked, one per line, with large gaps - confirmed in-game even after the
-// <strong> fix elsewhere in this file used the same technique). Flex-wrap sidesteps cohtml's inline
-// text flow entirely: each chunk below is its own <span> flex item instead of relying on normal
-// inline layout.
+// Flex-wrap sidesteps cohtml's unreliable inline text flow: each chunk below is its own <span> flex item.
 .desc {
     display: flex;
     flex-wrap: wrap;
-    // Not baseline - cohtml doesn't parse that align-items value. All spans here share the same
-    // font-size, so center looks the same anyway.
+    // Not baseline - cohtml doesn't parse that align-items value.
     align-items: center;
     column-gap: 5rem;
     row-gap: 2rem;
@@ -111,8 +97,7 @@
 .importNameInput {
     box-sizing: border-box;
     width: 100%;
-    // Same gap as %dialogTextBox's margin-bottom below - both are the last content element before
-    // Dialog's own buttons row (Export/Import's textarea/display, this input for the conflict modal).
+    // Same gap as %dialogTextBox's margin-bottom below - both are the last element before Dialog's buttons row.
     margin-bottom: var(--gap5);
     background-color: var(--sectionBackgroundColor);
     border-width: 1rem;
@@ -164,9 +149,7 @@
     border-bottom-right-radius: var(--panelRadiusInner);
     border-bottom-left-radius: var(--panelRadiusInner);
     color: var(--normalTextColor);
-    // Not a system monospace stack - cohtml's fallback for an unregistered font name doesn't cover
-    // accented glyphs (é/É render as tofu), same root cause as `inherit` - see ThemeExtraPanel.
-    // module.scss's .modeToggle button for the fuller version of this.
+    // Not a system monospace stack - cohtml's fallback for an unregistered font doesn't cover accented glyphs (é/É render as tofu).
     font-family: var(--fontFamily);
     font-size: var(--fontSizeXS);
     line-height: 1.5;
@@ -174,34 +157,20 @@
     padding-right: var(--gap2);
     padding-bottom: var(--gap2);
     padding-left: var(--gap2);
-    // Same gap as .importNameInput above - both are the last content element before Dialog's own
-    // buttons row.
+    // Same gap as .importNameInput above - both are the last element before Dialog's buttons row.
     margin-bottom: var(--gap5);
 }
 
-// Read-only Export payload - a <div>, not a <textarea>: cohtml's <textarea> only honors a single
-// mouse-wheel "notch" of scroll before it stops responding (confirmed in-game), so anything longer
-// than the visible height was unreachable. A plain scrollable div doesn't have that bug (same
-// overflow-y:auto pattern already used by CssDeclarationRow's list). white-space:pre-wrap keeps the
-// JSON's own formatting (indentation/newlines) since a div doesn't wrap like a textarea does.
+// Read-only Export payload - a <div>, not a <textarea>: cohtml's <textarea> only honors one mouse-wheel scroll "notch" before it stops responding.
 .exportDisplay {
     @extend %dialogTextBox;
     white-space: pre-wrap;
     word-break: break-word;
-    // Dialog's body centers text by default (fine for a <textarea>, which doesn't inherit
-    // text-align - but a plain <div> does), so undo it here explicitly.
+    // Dialog's body centers text by default (fine for <textarea>, but a plain <div> inherits it) - undo it here.
     text-align: left;
 }
 
-// Import's textarea has to stay a real <textarea> - it's editable (typed/pasted into), unlike
-// Export's read-only payload above. Height is driven by JS (ImportDialog's own growTextarea, an
-// explicit inline `height` set from scrollHeight) instead of flex/content-based sizing, which
-// doesn't reliably grow a <textarea> in this engine the way it does .exportDisplay's plain <div> -
-// see ImportDialog's own comment on that. flex-shrink:0 keeps that JS-computed height from being
-// shrunk back down by the flex algorithm when space is tight - ExtraUIThemeDialog's own .dialogBody
-// (a plain div, scrolls fine) absorbs the overflow instead. overflow:hidden fully disables this
-// element's own internal scroll attempt, which is unreachable past one mouse-wheel notch anyway
-// (confirmed in-game) and shouldn't be needed at all now that its height always matches content.
+// Import's textarea stays real (editable) - height is JS-driven (ImportDialog's growTextarea) since flex/content sizing doesn't grow it reliably in this engine.
 .exportTextarea {
     @extend %dialogTextBox;
     overflow-x: hidden;
@@ -209,9 +178,7 @@
     resize: none;
 }
 
-// Overlay placeholder, not the native `placeholder` attribute - `::placeholder` is unsupported in
-// this engine (no way to color it). Same technique as SearchBar.module.scss's
-// .searchInputPlaceholder; pointer-events:none so clicks reach the real textarea underneath.
+// Overlay placeholder, not the native `placeholder` attribute - `::placeholder` is unsupported in this engine.
 .textareaPlaceholder {
     position: absolute;
     left: var(--gap2);

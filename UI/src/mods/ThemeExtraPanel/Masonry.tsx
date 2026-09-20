@@ -1,30 +1,14 @@
 import { memo, ReactNode, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { remToPx } from "../Helpers/RemHelper";
 
-// cohtml 2.2.1.3 doesn't implement CSS multi-column (`column-width`/`column-count`) at all (silent
-// no-op) - this is a JS masonry fallback instead: measure each item's rendered height, place it in
-// the currently-shortest column, and recompute whenever the container is resized or an item's own
-// height changes (e.g. a group's foldout opens/closes). Items render twice - once
-// invisible/absolute at column width only (to get a real height via ResizeObserver), then
-// repositioned via absolute left/top once heights are known.
-//
-// `minColumnWidth`/`gap` are in the same rem-equivalent design units as the rest of this panel's
-// SCSS (see RemHelper.tsx), not real pixels - converted via remToPx() before the layout math, which
-// otherwise works entirely in real pixels (ResizeObserver's contentRect already reports those).
+// JS masonry fallback since cohtml doesn't implement CSS multi-column: measure each item, place it in the currently-shortest column.
 
 interface MasonryItem {
     key: string;
     node: ReactNode;
 }
 
-// Only used when `virtualize` is on (Advanced mode's ~300+ cards) - an item that hasn't been
-// measured yet (never actually rendered, because it's currently off-screen) reserves this much
-// space for packing purposes instead of 0, so the columns/scrollbar stay roughly right-sized before
-// it's ever scrolled into view. content-visibility:auto (native browser-level virtualization) was
-// tried first as a zero-JS alternative to all of this - measured in-game with 300+ cards, no
-// meaningful difference on move/resize fps with or without it, so treated as an unsupported no-op in
-// cohtml (consistent with this engine's track record elsewhere: :not(), IntersectionObserver, CSS
-// multi-column).
+// Reserved space for an unmeasured (off-screen, virtualized) item, so columns/scrollbar stay roughly right-sized.
 const ESTIMATED_ITEM_HEIGHT_REM = 88;
 
 const findScrollParent = (el: HTMLElement | null): HTMLElement | null => {
@@ -37,15 +21,7 @@ const findScrollParent = (el: HTMLElement | null): HTMLElement | null => {
     return null;
 };
 
-// One item's wrapper, its own memo boundary - without this, EVERY scroll tick re-rendered all
-// ~300 items just because Masonry's own visibleRange state changed, even for items whose own
-// isVisible/position/size didn't (still measurably laggy in-game even once every item had already
-// been scrolled past and measured at least once - not a "first discovery" cost, a "React
-// re-reconciles the whole list on every scroll frame" cost). React.memo's default shallow
-// comparison catches exactly that: a re-render here is skipped unless x/y/width/height/isVisible
-// (or `node`, which is already itself a stable reference - see advancedMasonryItems/
-// simpleMasonryItems in ThemeExtraPanel.tsx) actually changed for THIS item, so only the handful of
-// items actually crossing the visible boundary each frame do any real work.
+// Own memo boundary per item, so a scroll tick only re-renders items whose own props actually changed.
 const MasonryItemView = memo(({
     itemRef, x, y, width, height, isVisible, node,
 }: {
@@ -59,10 +35,7 @@ const MasonryItemView = memo(({
             left: x,
             top: y,
             width,
-            // Pinned explicitly while not rendering real content, so the item's own ResizeObserver
-            // entry keeps reporting the same already-known height instead of collapsing to whatever
-            // an empty div measures as - last real measurement if it's ever been visible before, the
-            // estimate otherwise.
+            // Pinned while not rendering real content, so ResizeObserver doesn't collapse it to an empty div's height.
             height: isVisible ? undefined : height,
         }}
     >
@@ -78,11 +51,7 @@ export const Masonry = ({
     const estimatedHeightPx = remToPx(ESTIMATED_ITEM_HEIGHT_REM);
     const containerRef = useRef<HTMLDivElement>(null);
     const itemRefs = useRef(new Map<string, HTMLDivElement>());
-    // Stable per-key ref callbacks - MasonryItemView's own memo only helps if `itemRef` itself is
-    // referentially stable across renders; a fresh closure per render (the previous inline
-    // `ref={(el) => ...}`) would make every item's props look "changed" to memo every time, on top
-    // of the identical purpose it already serves (routing each item's DOM node into itemRefs for the
-    // height ResizeObserver below), defeating the whole point of memoizing the item view.
+    // Stable per-key ref callbacks, so MasonryItemView's memo isn't defeated by a fresh closure every render.
     const refCallbacks = useRef(new Map<string, (el: HTMLDivElement | null) => void>());
     const getRefCallback = (key: string) => {
         let cb = refCallbacks.current.get(key);
@@ -94,20 +63,13 @@ export const Masonry = ({
     };
     const [containerWidth, setContainerWidth] = useState(0);
     const [heights, setHeights] = useState<Map<string, number>>(new Map());
-    // Local-coordinate (same space as `positions` below - relative to containerRef's own top, not
-    // the page) range that's actually visible right now, expanded by a viewport-proportional buffer
-    // above/below so items are already mounted just before they'd otherwise pop in on a fast scroll.
-    // null until the first measurement lands - everything renders in the meantime (see `isVisible`
-    // below), same graceful-default philosophy `heights` already uses.
+    // Visible local-y range, expanded by a buffer so items mount just before they'd pop in on a fast scroll.
     const [visibleRange, setVisibleRange] = useState<{ top: number; bottom: number } | null>(null);
 
     useLayoutEffect(() => {
         if (!containerRef.current) return;
         const el = containerRef.current;
-        // rAF-coalesced - a panel resize/drag can fire this callback many times before the browser
-        // paints a frame, and each call previously triggered its own setContainerWidth + a full
-        // masonry position recompute (below) synchronously. Only the latest width within a frame
-        // matters, so keep it in a plain variable and flush at most once per frame.
+        // rAF-coalesced - only the latest width within a frame matters, flush at most once per frame.
         let latestWidth: number | null = null;
         let rafId: number | null = null;
         const observer = new ResizeObserver(([entry]) => {
@@ -129,16 +91,7 @@ export const Masonry = ({
     }, []);
 
     useLayoutEffect(() => {
-        // ONE shared ResizeObserver for every item, not one-per-item: Advanced mode alone produces
-        // 258 groups (one per CSS selector), so N separate observers each firing their own callback
-        // was a real source of lag on mode switch. A single observer batches every changed element
-        // into one `entries` array per callback, so all height changes land in a single setHeights
-        // call instead of up to 258 of them back to back.
-        //
-        // Also rAF-coalesced on top of that batching, for the same reason as the container-width
-        // observer above: pending entries accumulate into `pendingHeights` across however many raw
-        // callback firings happen within a frame, and only the single resulting setHeights update is
-        // committed once per frame instead of once per callback.
+        // ONE shared ResizeObserver for every item (not one-per-item), rAF-coalesced into a single setHeights call per frame.
         const elementToKey = new Map<Element, string>();
         const pendingHeights = new Map<string, number>();
         let rafId: number | null = null;
@@ -177,23 +130,11 @@ export const Masonry = ({
             observer.disconnect();
             if (rafId !== null) cancelAnimationFrame(rafId);
         };
-        // Re-attach whenever the set of item keys changes (search/filter/mode changes the list) -
-        // the refs map may point at stale/removed nodes otherwise.
+        // Re-attach whenever the set of item keys changes - the refs map may point at stale/removed nodes otherwise.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [items.map((i) => i.key).join("|")]);
 
-    // Tracks which local-y range is actually visible, so items well outside it can skip mounting
-    // their real content below (see `isVisible`) - replaces content-visibility:auto (see
-    // ESTIMATED_ITEM_HEIGHT_REM's own comment on why) with hand-rolled scroll-driven virtualization,
-    // since IntersectionObserver (LazyMount.tsx's earlier attempt at the same goal) is confirmed
-    // non-functional in cohtml.
-    //
-    // Measured via getBoundingClientRect() on containerRef and the scroll ancestor (found once,
-    // walking up for the nearest overflow:auto/scroll element) rather than reconciling scrollTop/
-    // offsetTop by hand - both elements are always mounted regardless of virtualization, and
-    // getBoundingClientRect() already accounts for every ancestor's scroll position, padding and
-    // siblings above Masonry (the Advanced-only count line) with no coordinate-space bugs of our own
-    // to get subtly wrong.
+    // Hand-rolled scroll-driven virtualization via getBoundingClientRect(), since IntersectionObserver is non-functional in cohtml.
     useLayoutEffect(() => {
         if (!virtualize) return;
         const container = containerRef.current;
@@ -207,8 +148,7 @@ export const Masonry = ({
             const containerRect = container.getBoundingClientRect();
             const scrollRect = scrollParent.getBoundingClientRect();
             const top = scrollRect.top - containerRect.top;
-            // Buffer scaled to the viewport itself, not a fixed constant - the panel can be resized
-            // much taller or shorter than whatever a hardcoded px/rem guess would assume.
+            // Buffer scaled to the viewport itself, since the panel can be resized to any size.
             const overscan = scrollRect.height * 0.5;
             setVisibleRange({ top: top - overscan, bottom: top + scrollRect.height + overscan });
         };
@@ -232,14 +172,7 @@ export const Masonry = ({
     const columnCount = Math.max(1, Math.floor((containerWidth + gapPx) / (minColumnWidthPx + gapPx)));
     const columnWidth = columnCount > 0 ? (containerWidth - gapPx * (columnCount - 1)) / columnCount : containerWidth;
 
-    // Memoized separately from `visibleRange` - packing only actually depends on items/heights/
-    // column layout, never on which of them happen to be currently visible, but before this it was a
-    // plain computation inline in the render body, so it unconditionally re-ran in full (an O(items x
-    // columnCount) loop) on every single scroll-driven re-render too, for no reason (the result was
-    // always identical to the previous scroll tick's). That redundant recompute, not first-time
-    // measurement, turned out to be the dominant remaining scroll cost - it kept happening even after
-    // scrolling all the way through a list once (see the comment on MasonryItemView for the other
-    // half of this fix).
+    // Memoized separately from `visibleRange` - packing never depends on which items are currently visible.
     const { positions, totalHeight } = useMemo(() => {
         const columnHeights = new Array(columnCount).fill(0);
         const positions = new Map<string, { x: number; y: number }>();
@@ -249,12 +182,7 @@ export const Masonry = ({
                 if (columnHeights[c] < columnHeights[shortest]) shortest = c;
             }
             positions.set(item.key, { x: shortest * (columnWidth + gapPx), y: columnHeights[shortest] });
-            // Unmeasured items (never mounted - currently off-screen under virtualize) reserve the
-            // estimate instead of 0, so columns/scrollbar stay roughly right-sized instead of
-            // collapsing wherever nothing's been scrolled into view yet. Not applied when virtualize
-            // is off (Simple mode, the preserved Legacy view) - there every item mounts and gets
-            // measured almost immediately anyway, so this would only add needless churn to
-            // already-working behavior.
+            // Unmeasured items reserve the estimate (only when virtualize is on) instead of 0, so columns stay right-sized.
             const height = heights.get(item.key) ?? (virtualize ? estimatedHeightPx : 0);
             columnHeights[shortest] += height + gapPx;
         }

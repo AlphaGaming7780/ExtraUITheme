@@ -8,17 +8,7 @@ using System.Reflection;
 
 namespace ExtraUITheme.Helpers
 {
-    // Loads/saves Theme objects (see Theme.cs) from two sources, per the plan agreed on in
-    // docs/ThemePanel-Design.md:
-    // - Built-in themes (Default + the two legacy presets) ship embedded in the DLL
-    //   (embedded/Themes/*.json), read-only, never renamed/deleted from the UI.
-    // - User themes are plain files under ModsData/ExtraUITheme/Themes/*.json.
-    //
-    // Every known theme lives in one in-memory cache (m_Themes, keyed by Name), populated once by
-    // Initialize() - GetAllThemes()/GetTheme() never touch disk, so polling them from the UI (which
-    // happens on every edit) doesn't mean re-reading and re-parsing every theme file every time. A
-    // theme with unsaved changes (a fresh fork, an in-progress rename, an edited override) is just
-    // a cache entry with IsDirty set - not a separate pending-state mechanism.
+    // Loads/saves Theme objects: built-ins ship embedded in the DLL (read-only), user themes are plain files under ModsData/ExtraUITheme/Themes/*.json.
     internal static class ThemeManager
     {
         internal const string DefaultThemeName = "Default";
@@ -29,10 +19,7 @@ namespace ExtraUITheme.Helpers
 
         private static Dictionary<string, Theme> m_Themes;
 
-        // (Re)scans built-ins + UserThemesFolder into m_Themes from scratch. Anything only in
-        // memory and never saved (a fork, a rename not yet followed by Save) is lost, same as any
-        // other unsaved edit - this only knows what's actually on disk. Called once from
-        // ThemeExtraPanel.OnCreate, and again by the "Reload Theme" mod-settings button.
+        // (Re)scans built-ins + UserThemesFolder into m_Themes from scratch - anything unsaved is lost.
         internal static void Initialize()
         {
             m_Themes = new Dictionary<string, Theme>();
@@ -90,9 +77,7 @@ namespace ExtraUITheme.Helpers
             return themes;
         }
 
-        // A user theme file's own Name field is the source of truth for display, read here at load
-        // time - not derived from the filename, which only has to be a valid Windows filename, not a
-        // legible theme name. Decoded straight into a Theme - see its own comment on why that's safe.
+        // The file's own Name field is the source of truth for display - not derived from the filename.
         private static Theme LoadUserTheme(string path)
         {
             string fileName = Path.GetFileNameWithoutExtension(path);
@@ -111,13 +96,7 @@ namespace ExtraUITheme.Helpers
             }
         }
 
-        // Writes `theme` itself to disk under its own FileName - assigned here, once, from Name at
-        // the time of this FIRST save for a theme that doesn't have one yet, and never changed again
-        // even across later renames (Theme.Rename only ever touches Name/IsDirty). A rename after the
-        // first save updates the Name field inside the file's own JSON on the next save, not the
-        // file's location - so the filename can end up not matching the current display name if
-        // browsed by hand in ModsData. Deliberate: avoids re-deriving/moving the file (and re-running
-        // collision avoidance) on every rename, not just the first save.
+        // FileName is assigned once on the first save and never changes again, so a later rename can leave the filename not matching the display name.
         internal static bool Save(Theme theme)
         {
             if (theme == null || theme.IsBuiltIn) return false;
@@ -140,11 +119,7 @@ namespace ExtraUITheme.Helpers
             return true;
         }
 
-        // "<source.Name> (copy)", "(copy 2)", ... until a free name is found - registers the fork in
-        // the cache immediately (IsDirty, no FileName yet) so it behaves like any other theme (shows
-        // up in GetAllThemes(), is a valid SelectTheme/RenameTheme target) even before it's ever
-        // saved. Built-ins are read-only, so editing one forks it into a real (if not yet persisted)
-        // user theme first - see ThemeExtraPanel.SetOverride.
+        // "<source.Name> (copy)", "(copy 2)", ... - registered in the cache immediately, IsDirty, no FileName until it's ever saved.
         internal static Theme Fork(Theme source)
         {
             string baseName = $"{source.Name} (copy)";
@@ -162,9 +137,7 @@ namespace ExtraUITheme.Helpers
             return forked;
         }
 
-        // False (no rename) if newName is empty, theme is built-in, or newName collides with any
-        // other known theme (built-in or user) - one dictionary-key check now covers both, where
-        // this used to be two separate checks (IsBuiltInName + a disk file-existence check).
+        // False if newName is empty, theme is built-in, or newName collides with any other known theme.
         internal static bool Rename(Theme theme, string newName)
         {
             if (theme == null || theme.IsBuiltIn) return false;
@@ -177,11 +150,7 @@ namespace ExtraUITheme.Helpers
             return true;
         }
 
-        // Creates a new theme (or, with overwrite, replaces an existing one's overrides in place -
-        // keeping its FileName so the same file is rewritten rather than orphaned) and saves it
-        // immediately - unlike Fork, an import is a deliberate one-shot action, not something that
-        // needs its own pending/dirty step. Null (nothing written) for a built-in name, or an
-        // already-taken name without overwrite.
+        // Creates a new theme (or replaces an existing one's overrides in place, with overwrite) and saves it immediately.
         internal static Theme Import(string name, Dictionary<string, string> overrides, bool overwrite)
         {
             if (string.IsNullOrWhiteSpace(name) || IsBuiltInName(name)) return null;

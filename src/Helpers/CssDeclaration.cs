@@ -14,10 +14,7 @@ namespace ExtraUITheme.Helpers
 
     internal abstract class CssDeclaration : IJsonWritable, IEquatable<CssDeclaration>
     {
-        // Full selector this value is declared under, including any enclosing @-rule context
-        // (e.g. ":root", ".dark-theme", "@media (prefers-color-scheme: dark) :root"). The same
-        // variable Name can appear multiple times with different Selector/RawValue pairs - that's
-        // how the game's light/dark (and other) themes each override the same variables.
+        // Same Name can appear multiple times with a different Selector - that's how light/dark themes override the same variable.
         public readonly string Selector;
         public readonly string Name;
         public readonly string RawValue;
@@ -33,11 +30,7 @@ namespace ExtraUITheme.Helpers
 
         public void Write(IJsonWriter writer)
         {
-            // Full type name (not just the short class name) - matches the convention already used
-            // for ExtraPanel content (ExtraPanelBase.ID => GetType().FullName), so the UI side can key
-            // a components map by this exact string and pick the right renderer per concrete
-            // CssDeclaration subclass via TypedRenderer, the same way ExtraPanelsRoot does for panel
-            // content.
+            // Full type name (not short name) so the UI can pick a renderer per subclass via TypedRenderer.
             writer.TypeBegin(GetType().FullName);
             writer.PropertyName("selector");
             writer.Write(Selector);
@@ -53,11 +46,7 @@ namespace ExtraUITheme.Helpers
 
         protected abstract void WriteFields(IJsonWriter writer);
 
-        // Every subclass's extra fields (R/G/B/A, Number/Unit, ...) are deterministically parsed
-        // from RawValue (see Classify()), so Selector+Name+RawValue+concrete type is enough to
-        // decide equality - needed so GetterValueBinding's default comparer can tell two
-        // structurally-identical extraction passes apart from a genuinely changed one, instead of
-        // always treating a freshly-allocated List<CssDeclaration> as "changed" by reference.
+        // Selector+Name+RawValue+type is enough to tell two extraction passes apart - subclass fields are all deterministic from RawValue.
         public bool Equals(CssDeclaration other)
         {
             if (other is null) return false;
@@ -85,12 +74,7 @@ namespace ExtraUITheme.Helpers
     {
         public readonly double R, G, B, A;
 
-        // Set for e.g. "rgba(42,55,83,var(--panelOpacityNormal))" - a handful of the game's own
-        // panel-background variables tie their alpha to another variable instead of a literal
-        // number. A is still populated (1.0, a display-only stand-in - the real alpha depends on
-        // AlphaVarRef's own current value, which this extractor doesn't resolve) so the row can
-        // still render a swatch; editing one of these commits a plain literal-alpha rgba() like any
-        // other color, same as picking a new value always has replaced whatever the old one was.
+        // Set when alpha is tied to a var() (e.g. rgba(...,var(--panelOpacityNormal))) - A is then just a 1.0 display stand-in.
         public readonly string AlphaVarRef;
 
         public CssColorDeclaration(string selector, string name, string rawValue, double r, double g, double b, double a, string alphaVarRef = null)

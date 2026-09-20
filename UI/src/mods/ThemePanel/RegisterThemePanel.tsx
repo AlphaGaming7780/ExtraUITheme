@@ -20,11 +20,7 @@ export const RegisterThemePanel = () => {
             console.warn("ExtraPanelsRoot not found, ThemeExtraPanel will not be loaded");
     }, []);
 
-    // Applies the active theme's overrides to the live UI, independently of whether the
-    // ThemeExtraPanel itself is currently open - this component is always mounted (registered on
-    // the 'Menu'/'Game'/'Editor' module slots directly, see index.tsx), unlike ThemeExtraPanel's own
-    // render function which ExtraPanelsRoot only calls while that specific panel is open. Without
-    // this living here, the theme would only ever apply while the user had our panel open.
+    // Applies the active theme's overrides to the live UI regardless of whether ThemeExtraPanel itself is open.
     const availableThemes = useValue(availableThemes$) ?? [];
     const activeThemeName = useValue(activeThemeName$);
     const appliedPropertyNames = useRef<Set<string>>(new Set());

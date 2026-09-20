@@ -15,9 +15,7 @@ import styles from "./CssDeclarationRow.module.scss";
 
 // Other kinds are still read-only - writing back a unit/number/keyword isn't designed yet.
 
-// "list" (default, unset) - Simple mode's rows inside a curated FoldoutItem group (unchanged).
-// "card" - Advanced mode's flat, ungrouped Masonry cells (see ThemeExtraPanel.tsx) - each one is
-// its own bordered card with a kind tag, since it no longer sits under a labeled group header.
+// "list" - Simple mode's grouped rows; "card" - Advanced mode's flat, bordered Masonry cells.
 type Variant = { variant?: "list" | "card" };
 
 const kindTagClass: Record<CssDeclarationKind, string> = {
@@ -40,25 +38,15 @@ const KindTag = ({ kind }: { kind: CssDeclarationKind }) => {
 const rgba = (r: number, g: number, b: number, a: number) =>
     `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, ${a})`;
 
-// "rgba(r, g, b, var(--x))" - for a declaration whose alpha tracks another variable
-// (declaration.alphaVarRef) instead of a literal number, see CssColorDeclaration.alphaVarRef.
+// "rgba(r, g, b, var(--x))" - for a declaration whose alpha tracks another variable instead of a literal number.
 const rgbaWithAlphaRef = (r: number, g: number, b: number, alphaVarRef: string) =>
     `rgba(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)}, var(${alphaVarRef}))`;
 
 const sameColor = (a: Color, b: Color) => a.r === b.r && a.g === b.g && a.b === b.b && a.a === b.a;
 
-// memo() on every row component below - TypedListRenderer spreads a fresh {...data, ...props}
-// object into each one on every parent render (ThemeExtraPanel.tsx, Masonry.tsx), but the individual
-// scalar values inside it (declaration.r/g/b/name/kind/...) stay the same by Object.is as long as the
-// underlying declaration itself hasn't changed - memo's default shallow-per-key comparison catches
-// that even though the wrapping object is a new reference each time, and skips re-rendering ~300 of
-// these that don't actually need it on every resize/panel-update re-render (confirmed laggy in-game
-// without this).
+// memo() on every row component below, since TypedListRenderer spreads a fresh props object into each one on every parent render.
 export const ColorDeclarationRow = memo((declaration: CssColorDeclaration & Variant) => {
-    // ColorField's onChange fires continuously while dragging the wheel/gradient (every frame) -
-    // tracked locally for live preview, only sent to C# (SetOverride) on close. Sending on every
-    // onChange was spamming GetAllThemes (re-pulled on every binding Update()) and, with autosave
-    // on, rewriting the theme file to disk on every drag frame.
+    // ColorField's onChange fires every frame while dragging - tracked locally, only sent to C# (SetOverride) on close.
     const [color, setColor] = useState<Color>({ r: declaration.r, g: declaration.g, b: declaration.b, a: declaration.a });
     const dirtyRef = useRef(false);
 
@@ -66,18 +54,14 @@ export const ColorDeclarationRow = memo((declaration: CssColorDeclaration & Vari
         if (!dirtyRef.current) setColor({ r: declaration.r, g: declaration.g, b: declaration.b, a: declaration.a });
     }, [declaration.r, declaration.g, declaration.b, declaration.a]);
 
-    // R/G/B always edit normally - alpha only does when it isn't tied to another variable (no
-    // alpha slider is shown at all otherwise, see the ColorField props below), so the value written
-    // here always keeps the var() reference intact instead of collapsing it to a literal.
+    // Keeps the alpha var() reference intact instead of collapsing it to a literal, when one is set.
     const buildValue = (c: Color) =>
         declaration.alphaVarRef ? rgbaWithAlphaRef(c.r, c.g, c.b, declaration.alphaVarRef) : rgba(c.r, c.g, c.b, c.a);
 
     const onChange = (value: Color) => {
         dirtyRef.current = true;
         setColor(value);
-        // Live preview - applied directly as an inline style on <html>, which overrides any
-        // selector's own rule (same mechanism RegisterThemePanel.tsx uses for a committed theme).
-        // Only C# doesn't hear about it until onClosePicker - see the comment above.
+        // Live preview via an inline style on <html> - same mechanism RegisterThemePanel.tsx uses for a committed theme.
         document.documentElement.style.setProperty(declaration.name, buildValue(value));
     };
 
@@ -214,9 +198,7 @@ export const KeywordDeclarationRow = memo((declaration: CssKeywordDeclaration & 
     );
 });
 
-// Keyed by __Type (GetType().FullName from the C# CssDeclaration subclasses) - the same
-// components-map + TypedRenderer/TypedListRenderer convention ExtraPanelsRoot already uses to pick
-// a component per concrete data shape.
+// Keyed by __Type (GetType().FullName from the C# CssDeclaration subclasses) - the TypedRenderer convention ExtraPanelsRoot uses.
 export const cssDeclarationRowComponents: { [type: string]: (props: any) => any } = {
     "ExtraUITheme.Helpers.CssColorDeclaration": ColorDeclarationRow,
     "ExtraUITheme.Helpers.CssUnitDeclaration": UnitDeclarationRow,
