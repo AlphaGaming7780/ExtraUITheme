@@ -1,5 +1,19 @@
 .varRow {
     display: flex;
+    // Lets the value/swatch side (colorControl/valUnit/varValue/valRef/valKeyword below) drop to its
+    // own line instead of forcing the whole row wider than its Masonry column once .varLabel's own
+    // min-width no longer leaves enough room for both on one line.
+    flex-wrap: wrap;
+    // justify-content applies independently PER FLEX LINE in a wrapped container - on the shared
+    // line this has no visible effect (.varLabel's own flex:1 grow already eats all the free space,
+    // same as before flex-wrap existed here), but on a line where the value side wrapped onto its
+    // own alone, this is what actually pushes it to the right edge. margin-left:auto on the value
+    // side was tried first for this (the more idiomatic per-item tool) but measured in-game as a
+    // no-op specifically for a lone item on a wrapped line - left it sitting at the line's start
+    // instead. justify-content is one of the most basic, heavily-exercised flex properties (used
+    // successfully all over this panel already), so far more likely to be correctly implemented here
+    // than that narrower auto-margin-on-a-wrapped-line case.
+    justify-content: flex-end;
     align-items: center;
     row-gap: var(--gap2);
     column-gap: var(--gap2);
@@ -38,12 +52,19 @@
     display: flex;
     align-items: center;
     column-gap: var(--gap2);
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .varLabel {
     flex: 1;
-    min-width: 0;
+    // A narrow Masonry column (Simple's groups can land in one as small as minColumnWidth, see
+    // ThemeExtraPanel.tsx's <Masonry minColumnWidth={250}>) used to let this shrink all the way to 0
+    // - combined with overflow-wrap:anywhere below, a long name then wrapped one character per line
+    // instead of at word/segment boundaries. This floor keeps enough room for a real word before it
+    // has to wrap.
+    min-width: 60rem;
     // Not ellipsis+nowrap - text-overflow:ellipsis doesn't render in this engine (confirmed
     // in-game: a long value hard-crops mid-word with no "…", see .valRef/.valKeyword below for the
     // fuller writeup) - and native `title` tooltips don't work here either (see Tooltip usage in
@@ -59,7 +80,12 @@
     font-size: var(--fontSizeXS);
     color: var(--textColorDim);
     font-family: var(--fontFamily);
-    flex: 0 0 auto;
+    // Was flex:0 0 auto - never shrank, so a long rgba(...)/var(...) value forced .colorControl (and
+    // with it the whole row) wider than the column instead of wrapping. flex:1 1 auto + min-width:0
+    // lets it actually shrink and wrap within .colorControl's own max-width above.
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .valUnit {
@@ -83,7 +109,8 @@
     font-family: var(--fontFamily);
     max-width: 160rem;
     overflow-wrap: anywhere;
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-width: 0;
 }
 
 // "card" variant - Advanced mode's flat, ungrouped Masonry cells (no more per-selector Foldout to

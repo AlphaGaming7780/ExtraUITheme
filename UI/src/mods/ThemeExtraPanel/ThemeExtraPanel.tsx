@@ -45,7 +45,7 @@ type Mode = "simple" | "advanced";
 // translated label (ExtraTheme.Panel.Group[key], see embedded/Localization/*.json) is resolved at
 // render time in the `groups` useMemo below, not baked in here.
 const SIMPLE_GROUPS: { key: string; names: string[] }[] = [
-    { key: "PanelColors", names: ["--panelColorNormal", "--panelColorDark", "--sectionBackgroundColor", "--sectionBorderColor"] },
+    { key: "PanelColors", names: ["--panelColorNormal", "--panelColorDark", "--sectionBackgroundColor", "--sectionBorderColor", "--sectionHeaderColor"] },
     { key: "TextColors", names: ["--normalTextColor", "--textColorDim", "--textColorDisabled", "--textColorDimmer"] },
     {
         key: "AccentColors", names: [
