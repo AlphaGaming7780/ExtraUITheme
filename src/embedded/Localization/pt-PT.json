@@ -1,6 +1,6 @@
 {
     "ExtraPanelHeaderName[ExtraUITheme.Systems.UI.ThemePanel.ThemeExtraPanel]": "ExtraUITheme",
-    "Options.SECTION[ExtraUITheme.ExtraUITheme.EUT]": "Extra Theme",
+    "Options.SECTION[ExtraUITheme.ExtraUITheme.EUT]": "Extra UI Theme",
     "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Themes]": "Themes",
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Reload themes",
     "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Re-scans your custom theme files on disk - use this after adding or editing one without restarting the game.",
@@ -26,7 +26,8 @@
     "ExtraUITheme.Panel.SearchPlaceholder": "Search, e.g. panel*Color",
     "ExtraUITheme.Panel.ExportTitle": "Export theme",
     "ExtraUITheme.Panel.ExportSubtitle": "Theme:",
-    "ExtraUITheme.Panel.VariablesCount": "variable(s)",
+    "ExtraUITheme.Panel.VariablesCount": "{count} variable(s)",
+    "ExtraUITheme.Panel.VariablesCountFraction": "{filtered} / {total} variable(s)",
     "ExtraUITheme.Panel.ImportTitle": "Import a theme",
     "ExtraUITheme.Panel.ImportDesc": "Paste the exported theme below.",
     "ExtraUITheme.Panel.ImportDefaultName": "Imported theme",
@@ -36,8 +37,7 @@
     "ExtraUITheme.Panel.ImportPlaceholder": "Paste the exported theme here (JSON)...",
     "ExtraUITheme.Panel.ImportError": "Invalid text - this isn't recognizable JSON.",
     "ExtraUITheme.Panel.ImportConflictTitle": "A theme with that name already exists",
-    "ExtraUITheme.Panel.ImportConflictDesc": "A theme named",
-    "ExtraUITheme.Panel.ImportConflictDesc2": "already exists. What do you want to do?",
+    "ExtraUITheme.Panel.ImportConflictDesc": "A theme named {name} already exists. What do you want to do?",
     "ExtraUITheme.Panel.ImportConflictNewName": "New name (if you choose Rename)",
     "ExtraUITheme.Panel.Overwrite": "Overwrite",
     "ExtraUITheme.Panel.Rename": "Rename",
@@ -46,6 +46,5 @@
     "ExtraUITheme.Panel.RenameTaken": "A theme with that name already exists.",
     "ExtraUITheme.Panel.Delete": "Delete",
     "ExtraUITheme.Panel.DeleteTitle": "Delete theme",
-    "ExtraUITheme.Panel.DeleteDesc": "Permanently delete",
-    "ExtraUITheme.Panel.DeleteDesc2": "? This can't be undone."
+    "ExtraUITheme.Panel.DeleteDesc": "Permanently delete {name}? This can't be undone."
 }
