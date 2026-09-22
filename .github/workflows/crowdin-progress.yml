@@ -44,6 +44,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "Update translation progress from Crowdin"
+            git commit -F /tmp/crowdin-commit-message.txt
             git push
           fi
