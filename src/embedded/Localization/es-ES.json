@@ -36,6 +36,7 @@
     "ExtraUITheme.Panel.Cancel": "Cancelar",
     "ExtraUITheme.Panel.ImportPlaceholder": "Pegar el tema exportado aquí (JSON)...",
     "ExtraUITheme.Panel.ImportError": "Texto no válido - esto no es JSON reconocible.",
+    "ExtraUITheme.Panel.ImportEmptyError": "This JSON is valid, but doesn't contain any theme variables.",
     "ExtraUITheme.Panel.ImportConflictTitle": "Ya existe un tema con este nombre",
     "ExtraUITheme.Panel.ImportConflictDesc": "Ya existe un tema llamado {name}. ¿Qué quieres hacer?",
     "ExtraUITheme.Panel.ImportConflictNewName": "Nombre nuevo (si eliges renombrar)",
