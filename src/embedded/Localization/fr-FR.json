@@ -47,5 +47,5 @@
     "ExtraUITheme.Panel.RenameTaken": "Un thème avec ce nom existe déjà.",
     "ExtraUITheme.Panel.Delete": "Supprimer",
     "ExtraUITheme.Panel.DeleteTitle": "Supprimer le thème",
-    "ExtraUITheme.Panel.DeleteDesc": "Supprimer définitivement {name} ? Cette action est irréversible. "
+    "ExtraUITheme.Panel.DeleteDesc": "Supprimer définitivement {name} ? Cette action est irréversible."
 }
