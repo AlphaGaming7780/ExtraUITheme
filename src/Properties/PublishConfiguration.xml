@@ -23,7 +23,7 @@ Requires [ExtraLib](https://mods.paradoxplaza.com/mods/75724/Windows) as a depen
 
 # Translation
 ⚠️ This mod uses Crowdin so there may be inconsistencies with translations due to translations from different translators ⚠️
-- ⚠️French 90%
+- ❌French 0%
 - ❌Chinese Simplified 0%
 - ❌Chinese Traditional 0%
 - ❌German 0%
@@ -34,7 +34,7 @@ Requires [ExtraLib](https://mods.paradoxplaza.com/mods/75724/Windows) as a depen
 - ❌Portuguese 0%
 - ❌Portuguese, Brazilian 0%
 - ❌Russian 0%
-- ✔️Spanish 100% : elGendo87
+- ❌Spanish 0% : elGendo87
 
 Help translate: https://crowdin.com/project/extrauitheme
 
@@ -60,10 +60,6 @@ Thanks to everyone who helped along the way during development, and a special th
 	<!--Change log for new version. Single line or multi line. Supports minimal markdown subset-->
 	<!--<ChangeLog Value="" />-->
 	<ChangeLog>
-
-### Localisation
-* French : 0% → 90%
-* Spanish : 0% → 100%
 	</ChangeLog>
 	<!--External link, can be set multiple times. supported types are "discord", "github", "youtube", "twitch", "x", "paypal", "patreon", "buymeacoffee", "kofi", "crowdin", "gitlab", "gofundme"-->
 	<ExternalLink Type="crowdin" Url="https://crowdin.com/project/extrauitheme" />
