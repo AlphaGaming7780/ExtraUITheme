@@ -13,7 +13,7 @@ import {
 } from "./CssDeclarationTypes";
 import styles from "./CssDeclarationRow.module.scss";
 
-// Other kinds are still read-only - writing back a unit/number/keyword isn't designed yet.
+// VarReference/Keyword are still read-only - writing back a composite/reference value isn't designed yet.
 
 // "list" - Simple mode's grouped rows; "card" - Advanced mode's flat, bordered Masonry cells.
 type Variant = { variant?: "list" | "card" };
@@ -109,8 +109,74 @@ export const ColorDeclarationRow = memo((declaration: CssColorDeclaration & Vari
     );
 });
 
+// CSS requires the number immediately followed by the unit, no space (see CssVariableExtractor's kUnitPattern).
+const buildUnitValue = (number: number, unit: string) => `${number}${unit}`;
+
 export const UnitDeclarationRow = memo((declaration: CssUnitDeclaration & Variant) => {
-    const value = `${declaration.number} ${declaration.unit}`;
+    const [numberText, setNumberText] = useState(String(declaration.number));
+    const [unitText, setUnitText] = useState(declaration.unit);
+    const dirtyRef = useRef(false);
+
+    useEffect(() => {
+        if (!dirtyRef.current) {
+            setNumberText(String(declaration.number));
+            setUnitText(declaration.unit);
+        }
+    }, [declaration.number, declaration.unit]);
+
+    const commit = (nextNumberText: string, nextUnitText: string) => {
+        if (!dirtyRef.current) return;
+        dirtyRef.current = false;
+        const parsed = parseFloat(nextNumberText);
+        const unit = nextUnitText.trim();
+        if (Number.isNaN(parsed) || unit.length === 0) {
+            setNumberText(String(declaration.number));
+            setUnitText(declaration.unit);
+            document.documentElement.style.setProperty(declaration.name, buildUnitValue(declaration.number, declaration.unit));
+            return;
+        }
+        setNumberText(String(parsed));
+        setUnitText(unit);
+        trigger("EUT", "SetOverride", declaration.name, buildUnitValue(parsed, unit));
+    };
+
+    const onNumberChange = (value: string) => {
+        dirtyRef.current = true;
+        setNumberText(value);
+        const parsed = parseFloat(value);
+        if (!Number.isNaN(parsed)) {
+            document.documentElement.style.setProperty(declaration.name, buildUnitValue(parsed, unitText));
+        }
+    };
+
+    const onUnitChange = (value: string) => {
+        dirtyRef.current = true;
+        setUnitText(value);
+        const parsed = parseFloat(numberText);
+        if (!Number.isNaN(parsed) && value.trim().length > 0) {
+            document.documentElement.style.setProperty(declaration.name, buildUnitValue(parsed, value.trim()));
+        }
+    };
+
+    const inputs = (
+        <>
+            <input
+                className={styles.valInput}
+                value={numberText}
+                onChange={(e) => onNumberChange((e.target as HTMLInputElement).value)}
+                onBlur={() => commit(numberText, unitText)}
+                onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+            />
+            <input
+                className={styles.valUnitInput}
+                value={unitText}
+                onChange={(e) => onUnitChange((e.target as HTMLInputElement).value)}
+                onBlur={() => commit(numberText, unitText)}
+                onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+            />
+        </>
+    );
+
     if (declaration.variant === "card") {
         return (
             <div className={styles.varCard}>
@@ -118,21 +184,58 @@ export const UnitDeclarationRow = memo((declaration: CssUnitDeclaration & Varian
                     <span className={styles.cardName} title={declaration.name}>{declaration.name}</span>
                     <KindTag kind={declaration.kind} />
                 </div>
-                <div className={styles.cardBody}>
-                    <span className={styles.valUnit}>{value}</span>
-                </div>
+                <div className={styles.cardBody}>{inputs}</div>
             </div>
         );
     }
     return (
         <div className={styles.varRow}>
             <span className={styles.varLabel} title={declaration.name}>{declaration.name}</span>
-            <span className={styles.valUnit}>{value}</span>
+            <div className={styles.colorControl}>{inputs}</div>
         </div>
     );
 });
 
 export const NumberDeclarationRow = memo((declaration: CssNumberDeclaration & Variant) => {
+    const [text, setText] = useState(String(declaration.number));
+    const dirtyRef = useRef(false);
+
+    useEffect(() => {
+        if (!dirtyRef.current) setText(String(declaration.number));
+    }, [declaration.number]);
+
+    const commit = () => {
+        if (!dirtyRef.current) return;
+        dirtyRef.current = false;
+        const parsed = parseFloat(text);
+        if (Number.isNaN(parsed)) {
+            setText(String(declaration.number));
+            document.documentElement.style.setProperty(declaration.name, String(declaration.number));
+            return;
+        }
+        setText(String(parsed));
+        trigger("EUT", "SetOverride", declaration.name, String(parsed));
+    };
+
+    const onChange = (value: string) => {
+        dirtyRef.current = true;
+        setText(value);
+        const parsed = parseFloat(value);
+        if (!Number.isNaN(parsed)) {
+            document.documentElement.style.setProperty(declaration.name, String(parsed));
+        }
+    };
+
+    const input = (
+        <input
+            className={styles.valInput}
+            value={text}
+            onChange={(e) => onChange((e.target as HTMLInputElement).value)}
+            onBlur={commit}
+            onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+        />
+    );
+
     if (declaration.variant === "card") {
         return (
             <div className={styles.varCard}>
@@ -140,16 +243,14 @@ export const NumberDeclarationRow = memo((declaration: CssNumberDeclaration & Va
                     <span className={styles.cardName} title={declaration.name}>{declaration.name}</span>
                     <KindTag kind={declaration.kind} />
                 </div>
-                <div className={styles.cardBody}>
-                    <span className={styles.cardValue}>{declaration.number}</span>
-                </div>
+                <div className={styles.cardBody}>{input}</div>
             </div>
         );
     }
     return (
         <div className={styles.varRow}>
             <span className={styles.varLabel} title={declaration.name}>{declaration.name}</span>
-            <span className={styles.varValue}>{declaration.number}</span>
+            {input}
         </div>
     );
 });

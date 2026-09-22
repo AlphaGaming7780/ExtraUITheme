@@ -2,6 +2,8 @@
 
 ExtraUITheme lets you customize the look of the Cities: Skylines II UI directly from an in-game panel, by editing the game's CSS custom properties (colors, spacing, radii, and more) instead of hand-editing files.
 
+[![Crowdin](https://badges.crowdin.net/extrauitheme/localized.svg)](https://crowdin.com/project/extrauitheme)
+
 Requires [ExtraLib](https://github.com/AlphaGaming7780/ExtraLib) as a dependency.
 
 # Features

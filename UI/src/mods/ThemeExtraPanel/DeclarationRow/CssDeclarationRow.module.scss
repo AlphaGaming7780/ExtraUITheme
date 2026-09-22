@@ -70,6 +70,54 @@
     flex: 0 0 auto;
 }
 
+.valInput {
+    box-sizing: border-box;
+    width: 70rem;
+    flex: 0 0 auto;
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    color: var(--normalTextColor);
+    font-size: var(--fontSizeXS);
+    font-family: var(--fontFamily);
+    padding-top: 1rem;
+    padding-right: 5rem;
+    padding-bottom: 1rem;
+    padding-left: 5rem;
+}
+
+.valUnitInput {
+    box-sizing: border-box;
+    width: 50rem;
+    flex: 0 0 auto;
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    color: var(--normalTextColor);
+    font-size: var(--fontSizeXS);
+    font-family: var(--fontFamily);
+    padding-top: 1rem;
+    padding-right: 5rem;
+    padding-bottom: 1rem;
+    padding-left: 5rem;
+}
+
 // Not ellipsis+nowrap - cohtml doesn't render "…", so a truncated tail would be unrecoverable; max-width caps width before wrapping instead.
 .valRef, .valKeyword {
     font-size: var(--fontSizeXS);
