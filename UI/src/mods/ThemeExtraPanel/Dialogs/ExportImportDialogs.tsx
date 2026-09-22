@@ -18,7 +18,8 @@ export const ExportDialog = ({
     overrides: Record<string, string>;
     onClose: () => void;
 }) => {
-    const [payload] = useState(() => JSON.stringify({ name: themeName, overrides }, null, 4));
+    // Same shape as a saved theme file on disk (ThemeManager.Save) - "Name"/"Overrides", not the lowercase "name"/"overrides" the UI binding uses.
+    const [payload] = useState(() => JSON.stringify({ Name: themeName, Overrides: overrides }, null, 4));
     const { translate } = useLocalization();
     const count = Object.keys(overrides).length;
 
@@ -137,12 +138,24 @@ export const ImportDialog = ({
             return;
         }
 
-        // {name, overrides} (the current export shape) - or, for flexibility, a bare overrides map with no wrapper.
-        const overridesField = (parsed as { overrides?: unknown }).overrides;
+        // Accepts "Name"/"Overrides" (a saved theme file, or the current export shape), "name"/"overrides" (older exports,
+        // and the live UI binding shape), or a bare overrides map with no wrapper.
+        const record = parsed as Record<string, unknown>;
+        const overridesField = record.Overrides ?? record.overrides;
         const overrides = (overridesField && typeof overridesField === "object" && !Array.isArray(overridesField)
             ? overridesField
             : parsed) as Record<string, string>;
-        const nameField = (parsed as { name?: unknown }).name;
+
+        // Valid JSON with no recognizable "name"/"overrides" wrapper and no CSS-variable-looking entries either
+        // (e.g. pasting {Name, Overrides} before that shape was supported) - the bare-map fallback above ends up holding
+        // unrelated fields instead of theme data, so nothing gets imported silently unless this is caught here.
+        const overrideEntries = Object.entries(overrides);
+        if (overrideEntries.length === 0 || !overrideEntries.every(([key, value]) => key.startsWith("--") && typeof value === "string")) {
+            setError(translate("ExtraUITheme.Panel.ImportEmptyError", "This JSON is valid, but doesn't contain any theme variables."));
+            return;
+        }
+
+        const nameField = record.Name ?? record.name;
         const name = typeof nameField === "string" && nameField.trim().length > 0
             ? nameField.trim()
             : translate("ExtraUITheme.Panel.ImportDefaultName", "Imported theme") ?? "Imported theme";
