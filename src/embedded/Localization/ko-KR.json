@@ -4,6 +4,11 @@
     "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Themes]": "Themes",
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Reload themes",
     "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Re-scans your custom theme files on disk - use this after adding or editing one without restarting the game.",
+    "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.KeyBinding]": "Key bindings",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Undo",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Undoes the last change made in the theme panel.",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Redo",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Redoes the last change undone in the theme panel.",
     "ExtraUITheme.Theme[Default]": "Default",
     "ExtraUITheme.Theme[BrightBlue]": "Bright Blue",
     "ExtraUITheme.Theme[DarkGreyOrange]": "Dark Grey Orange",
@@ -47,5 +52,6 @@
     "ExtraUITheme.Panel.RenameTaken": "A theme with that name already exists.",
     "ExtraUITheme.Panel.Delete": "Delete",
     "ExtraUITheme.Panel.DeleteTitle": "Delete theme",
-    "ExtraUITheme.Panel.DeleteDesc": "Permanently delete {name}? This can't be undone."
+    "ExtraUITheme.Panel.DeleteDesc": "Permanently delete {name}? This can't be undone.",
+    "ExtraUITheme.Panel.Clone": "Clone"
 }
