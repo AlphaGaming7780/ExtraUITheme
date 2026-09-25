@@ -40,6 +40,7 @@ namespace ExtraUITheme
 
             m_Setting = new Setting(this);
             m_Setting.RegisterInOptionsUI();
+            m_Setting.RegisterKeyBindings();
 
             AssetDatabase.global.LoadSettings(nameof(ExtraUITheme), m_Setting, new Setting(this));
 

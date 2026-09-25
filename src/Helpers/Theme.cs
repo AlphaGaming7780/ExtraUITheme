@@ -26,6 +26,13 @@ namespace ExtraUITheme.Helpers
             IsDirty = true;
         }
 
+        // Reverts a variable back to inherited/default - used by Undo when the edit being undone was the first override for that variable.
+        internal void RemoveOverride(string variableName)
+        {
+            if (!Overrides.Remove(variableName)) return;
+            IsDirty = true;
+        }
+
         internal void Rename(string newName)
         {
             Name = newName;

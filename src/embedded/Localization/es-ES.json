@@ -4,6 +4,11 @@
     "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Themes]": "Temas",
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Recargar temas",
     "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Re-escanea tus archivos de tema personalizados en el disco - usa esto después de añadir o editar uno sin reiniciar el juego.",
+    "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.KeyBinding]": "Atajos de teclado",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Deshacer",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Deshace el último cambio realizado en el panel de temas.",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Rehacer",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Rehace el último cambio deshecho en el panel de temas.",
     "ExtraUITheme.Theme[Default]": "Predeterminado",
     "ExtraUITheme.Theme[BrightBlue]": "Azul brillante",
     "ExtraUITheme.Theme[DarkGreyOrange]": "Dark Grey Orange",
@@ -46,5 +51,7 @@
     "ExtraUITheme.Panel.RenameTaken": "Ya existe un tema con este nombre.",
     "ExtraUITheme.Panel.Delete": "Eliminar",
     "ExtraUITheme.Panel.DeleteTitle": "Eliminar tema",
-    "ExtraUITheme.Panel.DeleteDesc": "¿Eliminar permanentemente \"{name}\"? Esta acción no se puede deshacer."
+    "ExtraUITheme.Panel.DeleteDesc": "¿Eliminar permanentemente \"{name}\"? Esta acción no se puede deshacer.",
+
+    "ExtraUITheme.Panel.Clone": "Clonar"
 }

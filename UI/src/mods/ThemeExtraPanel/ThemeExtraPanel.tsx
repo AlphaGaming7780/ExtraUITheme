@@ -1,7 +1,7 @@
-import { bindValue, trigger, useValue } from "cs2/api";
+import { bindEvent, bindValue, trigger, useValue } from "cs2/api";
 import { useLocalization } from "cs2/l10n";
 import { Tooltip } from "cs2/ui";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ExtraPanelType } from "../ExtraPanelType";
 import { FoldoutItem } from "../../../game-ui/common/foldout/foldout-item";
 import { TintedIcon } from "../../../game-ui/common/image/tinted-icon";
@@ -27,12 +27,18 @@ import { DeleteThemeDialog } from "./Dialogs/DeleteThemeDialog";
 import { Masonry } from "./Masonry";
 import { useCompactWidth } from "../Helpers/useCompactWidth";
 import { usePanelDialogBounds } from "../Helpers/usePanelDialogBounds";
+import { isTypingInTextControl } from "../Helpers/KeyboardShortcuts";
 
 const cssDeclarations$ = bindValue<CssDeclaration[]>("EUT", "CssDeclarations");
 const availableThemes$ = bindValue<Theme[]>("EUT", "AvailableThemes");
 const activeThemeName$ = bindValue<string>("EUT", "ActiveThemeName");
 const autoSave$ = bindValue<boolean>("EUT", "AutoSave");
 const hasUnsavedChanges$ = bindValue<boolean>("EUT", "HasUnsavedChanges");
+
+// Fired by ThemeExtraPanel.cs's OnPreProcess when the real Ctrl+Z/Ctrl+Y ProxyAction fires -
+// see KeyboardShortcuts.ts for why the actual Undo/Redo call still needs a text-focus guard here.
+const onUndoShortcut$ = bindEvent<number>("EUT", "OnUndoShortcut");
+const onRedoShortcut$ = bindEvent<number>("EUT", "OnRedoShortcut");
 
 type Mode = "simple" | "advanced";
 
@@ -90,7 +96,20 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
 
         // Toolbar's top row - once narrower than this threshold, action buttons drop their text label and go icon-only.
         const toolbarRowRef = useRef<HTMLDivElement>(null);
-        const compactActions = useCompactWidth(toolbarRowRef, 720);
+        const compactActions = useCompactWidth(toolbarRowRef, 830);
+
+        // Ctrl+Z/Ctrl+Y - guarded so native undo/redo inside a focused text field (search box,
+        // Rename dialog, Import textarea, a variable's own value input) isn't hijacked.
+        const handleUndo = useCallback(() => { if (!isTypingInTextControl()) trigger("EUT", "Undo"); }, []);
+        const handleRedo = useCallback(() => { if (!isTypingInTextControl()) trigger("EUT", "Redo"); }, []);
+        useEffect(() => {
+            const undoSub = onUndoShortcut$.subscribe(handleUndo);
+            const redoSub = onRedoShortcut$.subscribe(handleRedo);
+            return () => {
+                undoSub.dispose();
+                redoSub.dispose();
+            };
+        }, [handleUndo, handleRedo]);
 
         const [mode, setMode] = useState<Mode>("simple");
         const [search, setSearch] = useState("");
@@ -198,6 +217,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         // Shared by each action button's <span> label and its Tooltip - translate() can return null, but Tooltip wants a plain string.
         const renameLabel = translate("ExtraUITheme.Panel.Rename", "Rename") ?? "Rename";
         const deleteLabel = translate("ExtraUITheme.Panel.Delete", "Delete") ?? "Delete";
+        const cloneLabel = translate("ExtraUITheme.Panel.Clone", "Clone") ?? "Clone";
         const exportLabel = translate("ExtraUITheme.Panel.Export", "Export") ?? "Export";
         const importLabel = translate("ExtraUITheme.Panel.Import", "Import") ?? "Import";
         const saveLabel = translate("ExtraUITheme.Panel.Save", "Save") ?? "Save";
@@ -245,6 +265,12 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                             <button className={toolbarStyles.btn} disabled={!activeTheme || activeTheme.isBuiltIn} onClick={() => setShowDelete(true)}>
                                 <TintedIcon className={toolbarStyles.btnIcon} src="Media/Glyphs/Trash.svg" />
                                 {!compactActions && <span>{deleteLabel}</span>}
+                            </button>
+                        </Tooltip>
+                        <Tooltip tooltip={cloneLabel}>
+                            <button className={toolbarStyles.btn} disabled={!activeTheme} onClick={() => trigger("EUT", "CloneTheme")}>
+                                <TintedIcon className={toolbarStyles.btnIcon} src="Media/Glyphs/Copy.svg" />
+                                {!compactActions && <span>{cloneLabel}</span>}
                             </button>
                         </Tooltip>
                         <Tooltip tooltip={exportLabel}>
