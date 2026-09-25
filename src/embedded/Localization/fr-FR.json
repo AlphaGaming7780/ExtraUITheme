@@ -4,11 +4,11 @@
     "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Themes]": "Thèmes",
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Recharger les thèmes",
     "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Relit vos fichiers de thème personnalisés sur le disque - utilisez ce bouton après en avoir ajouté ou modifié un sans redémarrer le jeu.",
-    "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.KeyBinding]": "Key bindings",
-    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Undo",
-    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Undoes the last change made in the theme panel.",
-    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Redo",
-    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Redoes the last change undone in the theme panel.",
+    "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.KeyBinding]": "Raccourcis clavier",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Annuler",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Annule le dernier changement effectué dans le panneau de thème.",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Rétablir",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Rétablit le dernier changement annulé dans le panneau de thème.",
     "ExtraUITheme.Theme[Default]": "Défaut",
     "ExtraUITheme.Theme[BrightBlue]": "Bleu vif",
     "ExtraUITheme.Theme[DarkGreyOrange]": "Gris foncé orange",
@@ -53,5 +53,5 @@
     "ExtraUITheme.Panel.Delete": "Supprimer",
     "ExtraUITheme.Panel.DeleteTitle": "Supprimer le thème",
     "ExtraUITheme.Panel.DeleteDesc": "Supprimer définitivement {name} ? Cette action est irréversible.",
-    "ExtraUITheme.Panel.Clone": "Clone"
+    "ExtraUITheme.Panel.Clone": "Cloner"
 }
