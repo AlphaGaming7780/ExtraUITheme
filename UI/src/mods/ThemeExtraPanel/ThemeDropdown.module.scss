@@ -9,6 +9,7 @@
 // Custom theme for Dropdown/DropdownToggle/DropdownItem - reads panel-relative vars, unlike the game's own game-dropdown.module.scss (hardcoded colors).
 .dropdownToggle {
     display: flex;
+    justify-content: center;
     align-items: center;
     width: 100%;
     background-color: var(--sectionBackgroundColor);

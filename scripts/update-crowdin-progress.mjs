@@ -1,5 +1,8 @@
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
+
+const COMMIT_MESSAGE_PATH = join(tmpdir(), "crowdin-commit-message.txt");
 
 const PROJECT_ID = process.env.CROWDIN_PROJECT_ID;
 const TOKEN = process.env.CROWDIN_PERSONAL_TOKEN;
@@ -48,6 +51,7 @@ async function fetchProgress() {
 
 function updateLines(content, progress) {
   const changes = [];
+  const unchanged = [];
   const lines = content.split("\n").map((line) => {
     const match = line.match(BULLET_RE);
     if (!match) return line;
@@ -59,15 +63,33 @@ function updateLines(content, progress) {
 
     const oldPercent = Number(oldPercentStr);
     const newPercent = found.percent;
-    if (newPercent === oldPercent) return line;
+    if (newPercent === oldPercent) {
+      unchanged.push({ name, percent: oldPercent });
+      return line;
+    }
 
     changes.push({ name, oldPercent, newPercent });
     return `- ${iconFor(newPercent)}${namePart}${newPercent}%${rest}`;
   });
-  return { content: lines.join("\n"), changes };
+  return { content: lines.join("\n"), changes, unchanged };
 }
 
 const buildBulletLine = (change) => `* ${change.name} : ${change.oldPercent}% → ${change.newPercent}%`;
+
+// "Current" = languages tracked in the file that this commit leaves untouched (already reflected from an
+// earlier run in the PR); "Changed" = languages this commit actually moves.
+function buildCommitMessage(changes, unchanged) {
+  const sections = [];
+  if (unchanged.length > 0) {
+    const bullets = unchanged.map((u) => `* ${u.name} : ${u.percent}%`).join("\n");
+    sections.push(["Current", bullets].join("\n"));
+  }
+  if (changes.length > 0) {
+    sections.push(["Changed", changes.map(buildBulletLine).join("\n")].join("\n"));
+  }
+
+  return ["Update translation progress from Crowdin", "", sections.join("\n\n")].join("\n");
+}
 
 // Updates bullets already in the section by language name (in place) instead of duplicating them; anything else in
 // the section (manual notes, credit-only bullets for a language with no % change this run) is left untouched.
@@ -132,7 +154,7 @@ const usesCRLF = raw.includes("\r\n");
 const normalized = raw.replace(/\r\n/g, "\n");
 
 const progress = await fetchProgress();
-const { content: withProgress, changes } = updateLines(normalized, progress);
+const { content: withProgress, changes, unchanged } = updateLines(normalized, progress);
 
 if (changes.length === 0) {
   console.log("No translation progress changes.");
@@ -141,6 +163,7 @@ if (changes.length === 0) {
 
 const final = appendChangelogSection(withProgress, changes);
 writeFileSync(filePath, usesCRLF ? final.replace(/\n/g, "\r\n") : final);
+writeFileSync(COMMIT_MESSAGE_PATH, buildCommitMessage(changes, unchanged));
 
 console.log(`Updated ${changes.length} language(s):`);
 for (const c of changes) {
