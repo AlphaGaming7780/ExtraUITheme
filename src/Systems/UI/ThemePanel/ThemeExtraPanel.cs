@@ -216,9 +216,7 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             m_AvailableThemesBinding.Update();
         }
 
-        // One undoable step: variableName's override value before and after the edit.
-        // PreviousValue is null when the variable had no override at all before this edit (i.e.
-        // undoing must remove the override rather than set it to some value).
+        // One undoable step; PreviousValue is null when the variable had no override before the edit, meaning Undo must remove it rather than restore a value.
         private readonly struct HistoryEntry
         {
             internal readonly string VariableName;

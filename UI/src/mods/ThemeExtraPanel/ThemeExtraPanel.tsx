@@ -35,8 +35,7 @@ const activeThemeName$ = bindValue<string>("EUT", "ActiveThemeName");
 const autoSave$ = bindValue<boolean>("EUT", "AutoSave");
 const hasUnsavedChanges$ = bindValue<boolean>("EUT", "HasUnsavedChanges");
 
-// Fired by ThemeExtraPanel.cs's OnPreProcess when the real Ctrl+Z/Ctrl+Y ProxyAction fires -
-// see KeyboardShortcuts.ts for why the actual Undo/Redo call still needs a text-focus guard here.
+// Fired by ThemeExtraPanel.cs's OnPreProcess on the real Ctrl+Z/Ctrl+Y ProxyAction - see KeyboardShortcuts.ts for the text-focus guard this still needs.
 const onUndoShortcut$ = bindEvent<number>("EUT", "OnUndoShortcut");
 const onRedoShortcut$ = bindEvent<number>("EUT", "OnRedoShortcut");
 
@@ -98,8 +97,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const toolbarRowRef = useRef<HTMLDivElement>(null);
         const compactActions = useCompactWidth(toolbarRowRef, 830);
 
-        // Ctrl+Z/Ctrl+Y - guarded so native undo/redo inside a focused text field (search box,
-        // Rename dialog, Import textarea, a variable's own value input) isn't hijacked.
+        // Ctrl+Z/Ctrl+Y, guarded so native undo/redo inside a focused text field isn't hijacked.
         const handleUndo = useCallback(() => { if (!isTypingInTextControl()) trigger("EUT", "Undo"); }, []);
         const handleRedo = useCallback(() => { if (!isTypingInTextControl()) trigger("EUT", "Redo"); }, []);
         useEffect(() => {

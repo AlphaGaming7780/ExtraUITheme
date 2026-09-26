@@ -8,32 +8,92 @@ using System.Reflection;
 
 namespace ExtraUITheme.Helpers
 {
-    // Loads/saves Theme objects: built-ins ship embedded in the DLL (read-only), user themes are plain files under ModsData/ExtraUITheme/Themes/*.json.
+    // Loads/saves Theme objects: built-ins ship embedded in the DLL, user themes live under ModsData/ExtraUITheme/Themes/*.json or *.eutjson, and other mods can bundle read-only *.eutjson themes under the Paradox Mods cache.
     internal static class ThemeManager
     {
         internal const string DefaultThemeName = "Default";
         private static readonly string[] BuiltInPresetNames = { "BrightBlue", "DarkGreyOrange" };
 
+        private const string PreferredExtension = ".eutjson";
+        private const string LegacyExtension = ".json";
+        private static readonly string[] SupportedExtensions = { LegacyExtension, PreferredExtension };
+
         private static readonly string UserThemesFolder =
             Path.Combine(EnvPath.kUserDataPath, "ModsData", nameof(ExtraUITheme), "Themes");
 
+        private static readonly string SharedThemesFolder =
+            Path.Combine(EnvPath.kCacheDataPath, "Mods", "pdx_mods");
+
         private static Dictionary<string, Theme> m_Themes;
 
-        // (Re)scans built-ins + UserThemesFolder into m_Themes from scratch - anything unsaved is lost.
+        // (Re)scans built-ins + shared + UserThemesFolder into m_Themes from scratch - anything unsaved is lost.
         internal static void Initialize()
         {
             m_Themes = new Dictionary<string, Theme>();
 
             foreach (Theme theme in LoadBuiltInThemes()) m_Themes[theme.Name] = theme;
+            foreach (Theme theme in LoadSharedThemes()) m_Themes[theme.Name] = theme;
+
+            MigrateLegacyThemeFiles();
 
             if (Directory.Exists(UserThemesFolder))
             {
-                foreach (string path in Directory.EnumerateFiles(UserThemesFolder, "*.json"))
+                foreach (string extension in SupportedExtensions)
                 {
-                    Theme theme = LoadUserTheme(path);
-                    if (theme != null) m_Themes[theme.Name] = theme;
+                    foreach (string path in Directory.EnumerateFiles(UserThemesFolder, "*" + extension))
+                    {
+                        Theme theme = LoadUserTheme(path, isReadOnly: false);
+                        if (theme != null) m_Themes[theme.Name] = theme;
+                    }
                 }
             }
+        }
+
+        // Renames every leftover *.json in UserThemesFolder to *.eutjson, skipping (never overwriting) a file whose *.eutjson name already exists or whose rename fails.
+        private static void MigrateLegacyThemeFiles()
+        {
+            if (!Directory.Exists(UserThemesFolder)) return;
+
+            foreach (string path in Directory.EnumerateFiles(UserThemesFolder, "*" + LegacyExtension))
+            {
+                string target = Path.ChangeExtension(path, PreferredExtension);
+                if (File.Exists(target))
+                {
+                    EUT.Logger.Warn($"Not migrating '{path}' to {PreferredExtension} - a file with that name already exists.");
+                    continue;
+                }
+
+                try
+                {
+                    File.Move(path, target);
+                }
+                catch (Exception ex)
+                {
+                    EUT.Logger.Error($"Failed to migrate '{path}' to {PreferredExtension}: {ex}");
+                }
+            }
+        }
+
+        // Scans every mod folder under the Paradox Mods cache for bundled *.eutjson theme files only - that folder is full of unrelated JSON from other mods.
+        private static List<Theme> LoadSharedThemes()
+        {
+            List<Theme> themes = new List<Theme>();
+            if (!Directory.Exists(SharedThemesFolder)) return themes;
+
+            try
+            {
+                foreach (string path in Directory.EnumerateFiles(SharedThemesFolder, "*" + PreferredExtension, SearchOption.AllDirectories))
+                {
+                    Theme theme = LoadUserTheme(path, isReadOnly: true);
+                    if (theme != null) themes.Add(theme);
+                }
+            }
+            catch (Exception ex)
+            {
+                EUT.Logger.Error($"Failed to scan shared themes folder: {ex}");
+            }
+
+            return themes;
         }
 
         internal static List<Theme> GetAllThemes() => m_Themes.Values.ToList();
@@ -77,16 +137,17 @@ namespace ExtraUITheme.Helpers
             return themes;
         }
 
-        // The file's own Name field is the source of truth for display - not derived from the filename.
-        private static Theme LoadUserTheme(string path)
+        // The file's own Name field is the source of truth for display, not the filename; isReadOnly marks mod-bundled themes as built-in-like (fork-on-edit, no rename/delete).
+        private static Theme LoadUserTheme(string path, bool isReadOnly)
         {
             string fileName = Path.GetFileNameWithoutExtension(path);
 
             try
             {
                 Theme theme = Decoder.Decode(File.ReadAllText(path)).Make<Theme>();
-                theme.IsBuiltIn = false;
+                theme.IsBuiltIn = isReadOnly;
                 theme.FileName = fileName;
+                theme.FileExtension = Path.GetExtension(path);
                 return theme;
             }
             catch (Exception ex)
@@ -96,23 +157,25 @@ namespace ExtraUITheme.Helpers
             }
         }
 
-        // FileName is assigned once on the first save and never changes again, so a later rename can leave the filename not matching the display name.
+        // FileName/FileExtension are assigned once on the first save and never change again, so a later rename can leave the filename not matching the display name.
         internal static bool Save(Theme theme)
         {
             if (theme == null || theme.IsBuiltIn) return false;
+
+            theme.FileExtension ??= PreferredExtension;
 
             if (theme.FileName == null)
             {
                 string baseName = SanitizeFileName(theme.Name);
                 string candidate = baseName;
-                for (int n = 2; File.Exists(Path.Combine(UserThemesFolder, candidate + ".json")); n++)
+                for (int n = 2; File.Exists(Path.Combine(UserThemesFolder, candidate + theme.FileExtension)); n++)
                     candidate = $"{baseName} ({n})";
                 theme.FileName = candidate;
             }
 
             if (!Directory.Exists(UserThemesFolder)) Directory.CreateDirectory(UserThemesFolder);
 
-            string path = Path.Combine(UserThemesFolder, theme.FileName + ".json");
+            string path = Path.Combine(UserThemesFolder, theme.FileName + theme.FileExtension);
             File.WriteAllText(path, Encoder.Encode(theme, EncodeOptions.None));
 
             theme.IsDirty = false;
@@ -172,7 +235,7 @@ namespace ExtraUITheme.Helpers
             if (theme == null || theme.IsBuiltIn) return;
             if (theme.FileName != null)
             {
-                string path = Path.Combine(UserThemesFolder, theme.FileName + ".json");
+                string path = Path.Combine(UserThemesFolder, theme.FileName + (theme.FileExtension ?? PreferredExtension));
                 if (File.Exists(path)) File.Delete(path);
             }
             m_Themes.Remove(theme.Name);

@@ -18,7 +18,9 @@ Requires [ExtraLib](https://mods.paradoxplaza.com/mods/75724/Windows) as a depen
 * Simple mode — curated, grouped variables (panel colors, text colors, accents, borders, ...) for quick theming without digging through the full list.
 * Advanced mode — every :root-overridable variable exposed as a flat, searchable list.
 * Built-in presets — ready-made themes you can apply instantly.
-* Custom themes — fork, rename, and save your own themes.
+* Custom themes — fork, rename, clone, and save your own themes.
+* Undo / Redo — step back and forward through your theme edits with Ctrl+Z / Ctrl+Y, rebindable in Settings.
+* Shared themes — automatically load themes bundled by other mods, alongside your own.
 * Import / Export — share themes as plain JSON.
 
 # Translation
@@ -50,7 +52,7 @@ Thanks to everyone who helped along the way during development, and a special th
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="" />
 	<!--Version of the mod-->
-	<ModVersion Value="1.0" />
+	<ModVersion Value="1.1" />
 	<!--Recommended version of the base game to use the mod-->
 	<GameVersion Value="1.6.*" />
 	<!--Dependency for the mod, can be set multiple times-->
@@ -60,6 +62,11 @@ Thanks to everyone who helped along the way during development, and a special th
 	<!--Change log for new version. Single line or multi line. Supports minimal markdown subset-->
 	<!--<ChangeLog Value="" />-->
 	<ChangeLog>
+### Features
+* Clone themes — duplicate any theme (built-in or custom) into a new editable copy in one click.
+* Undo/Redo — Ctrl+Z / Ctrl+Y to step back and forward through your theme edits, with rebindable keys in Settings.
+* Shared themes — automatically load themes bundled by other mods, in addition to your own.
+* New `.eutjson` theme file format, replacing plain `.json` — existing theme files are migrated automatically, no action needed.
 
 ### Localisation
 * French : 90% → 100%

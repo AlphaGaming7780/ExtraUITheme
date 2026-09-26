@@ -17,6 +17,9 @@ namespace ExtraUITheme.Helpers
         // Null until ThemeManager.Save() first succeeds for this theme; assigned once from Name and never changed again, even across later renames.
         internal string FileName;
 
+        // Extension the file was loaded with, kept on re-save; null until first saved, when Save() picks the preferred one.
+        internal string FileExtension;
+
         // Set by SetOverride/Rename, cleared by ThemeManager.Save().
         internal bool IsDirty;
 
