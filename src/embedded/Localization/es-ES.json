@@ -4,11 +4,11 @@
     "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Themes]": "Temas",
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Recargar temas",
     "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Re-escanea tus archivos de tema personalizados en el disco - usa esto después de añadir o editar uno sin reiniciar el juego.",
-    "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.KeyBinding]": "Key bindings",
-    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Undo",
-    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Undoes the last change made in the theme panel.",
-    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Redo",
-    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Redoes the last change undone in the theme panel.",
+    "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.KeyBinding]": "Asignación de teclas",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Deshacer",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Deshace el último cambio realizado en el panel de temas.",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Rehacer",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Rehace el último cambio realizado en el panel de temas.",
     "ExtraUITheme.Theme[Default]": "Predeterminado",
     "ExtraUITheme.Theme[BrightBlue]": "Azul brillante",
     "ExtraUITheme.Theme[DarkGreyOrange]": "Naranja gris oscuro",
@@ -53,5 +53,5 @@
     "ExtraUITheme.Panel.Delete": "Eliminar",
     "ExtraUITheme.Panel.DeleteTitle": "Eliminar tema",
     "ExtraUITheme.Panel.DeleteDesc": "¿Eliminar permanentemente \"{name}\"? Esta acción no se puede deshacer.",
-    "ExtraUITheme.Panel.Clone": "Clone"
+    "ExtraUITheme.Panel.Clone": "Clonar"
 }
