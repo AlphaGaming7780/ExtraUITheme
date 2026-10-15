@@ -4,7 +4,9 @@
 .actions {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
+    // Stretch, not center - icon-only buttons (14rem icon) are otherwise shorter than the theme dropdown toggle (a text line box) sharing .row.
+    align-self: stretch;
+    align-items: stretch;
     row-gap: var(--gap2);
     column-gap: var(--gap2);
     flex: 0 1 auto;

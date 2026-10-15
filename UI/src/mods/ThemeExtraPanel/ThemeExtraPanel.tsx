@@ -34,6 +34,11 @@ const availableThemes$ = bindValue<Theme[]>("EUT", "AvailableThemes");
 const activeThemeName$ = bindValue<string>("EUT", "ActiveThemeName");
 const autoSave$ = bindValue<boolean>("EUT", "AutoSave");
 const hasUnsavedChanges$ = bindValue<boolean>("EUT", "HasUnsavedChanges");
+// The game's useLegacyInterfaceActive() binding - false means <body> has `overwrite-legacy`.
+const useLegacyInterface$ = bindValue<boolean>("options", "useLegacyInterface");
+
+// The game's modern-UI block, redefining ~80 :root variables.
+const OVERWRITE_LEGACY_SELECTOR = ":root .overwrite-legacy";
 
 // Fired by ThemeExtraPanel.cs's OnPreProcess on the real Ctrl+Z/Ctrl+Y ProxyAction - see KeyboardShortcuts.ts for the text-focus guard this still needs.
 const onUndoShortcut$ = bindEvent<number>("EUT", "OnUndoShortcut");
@@ -87,6 +92,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const activeThemeName = useValue(activeThemeName$);
         const autoSave = useValue(autoSave$) ?? false;
         const hasUnsavedChanges = useValue(hasUnsavedChanges$) ?? false;
+        const useLegacyInterface = useValue(useLegacyInterface$) ?? false;
         const { translate } = useLocalization();
 
         // This panel's own outer box - tracked so every dialog (ExtraUIThemeDialog.tsx) can cap itself to its size.
@@ -139,22 +145,29 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
             setEverExpandedGroups((prev) => (prev.has(title) ? prev : new Set(prev).add(title)));
         };
 
-        // Patch :root declarations with the active theme's live overrides, since ExtractAll() only reads static index.css.
+        // One declaration per variable with the game default in effect: `:root .overwrite-legacy` wins over :root in the modern UI.
+        const defaultDeclarations = useMemo(() => {
+            const byName = new Map<string, CssDeclaration>();
+            for (const d of declarations) if (d.selector === ":root") byName.set(d.name, d);
+            if (!useLegacyInterface) {
+                for (const d of declarations) if (d.selector === OVERWRITE_LEGACY_SELECTOR) byName.set(d.name, d);
+            }
+            return [...byName.values()];
+        }, [declarations, useLegacyInterface]);
+
+        // Patch the defaults with the active theme's live overrides, since ExtractAll() only reads static index.css.
         const effectiveDeclarations = useMemo(() => {
             const overrides = activeTheme?.overrides;
-            if (!overrides || Object.keys(overrides).length === 0) return declarations;
-            return declarations.map((d) => {
-                if (d.selector !== ":root") return d;
+            if (!overrides || Object.keys(overrides).length === 0) return defaultDeclarations;
+            return defaultDeclarations.map((d) => {
                 const override = overrides[d.name];
                 if (override === undefined) return d;
                 return { ...d, ...resolveOverrideFields(override) };
             });
-        }, [declarations, activeTheme]);
+        }, [defaultDeclarations, activeTheme]);
 
-        // Only :root is ever actually overridable (see Legacy/AdvancedSelectorGroupedList.tsx) - other selectors would just duplicate each variable.
         const filtered = useMemo(() => {
             return effectiveDeclarations.filter((d) => {
-                if (d.selector !== ":root") return false;
                 if (activeKinds.length > 0 && !activeKinds.includes(d.kind)) return false;
                 if (search.length === 0) return true;
                 return matchesSearch(search, d.name);
@@ -210,7 +223,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const masonryItems = mode === "simple" ? simpleMasonryItems : advancedMasonryItems;
 
         // "12 / 308 variables" above Advanced's flat grid, since there's no group header to summarize it otherwise.
-        const totalRootCount = useMemo(() => declarations.filter((d) => d.selector === ":root").length, [declarations]);
+        const totalRootCount = defaultDeclarations.length;
 
         // Shared by each action button's <span> label and its Tooltip - translate() can return null, but Tooltip wants a plain string.
         const renameLabel = translate("ExtraUITheme.Panel.Rename", "Rename") ?? "Rename";

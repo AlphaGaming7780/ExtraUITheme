@@ -12,6 +12,7 @@ import {
     CssVarReferenceDeclaration,
 } from "./CssDeclarationTypes";
 import styles from "./CssDeclarationRow.module.scss";
+import { clearPreviewOverride, setPreviewOverride } from "../../Helpers/themeStyleSheet";
 
 // VarReference/Keyword are still read-only - writing back a composite/reference value isn't designed yet.
 
@@ -61,8 +62,8 @@ export const ColorDeclarationRow = memo((declaration: CssColorDeclaration & Vari
     const onChange = (value: Color) => {
         dirtyRef.current = true;
         setColor(value);
-        // Live preview via an inline style on <html> - same mechanism RegisterThemePanel.tsx uses for a committed theme.
-        document.documentElement.style.setProperty(declaration.name, buildValue(value));
+        // Live preview through the mod's <style>, like a committed theme.
+        setPreviewOverride(declaration.name, buildValue(value));
     };
 
     const onClosePicker = () => {
@@ -132,7 +133,7 @@ export const UnitDeclarationRow = memo((declaration: CssUnitDeclaration & Varian
         if (Number.isNaN(parsed) || unit.length === 0) {
             setNumberText(String(declaration.number));
             setUnitText(declaration.unit);
-            document.documentElement.style.setProperty(declaration.name, buildUnitValue(declaration.number, declaration.unit));
+            clearPreviewOverride(declaration.name);
             return;
         }
         setNumberText(String(parsed));
@@ -145,7 +146,7 @@ export const UnitDeclarationRow = memo((declaration: CssUnitDeclaration & Varian
         setNumberText(value);
         const parsed = parseFloat(value);
         if (!Number.isNaN(parsed)) {
-            document.documentElement.style.setProperty(declaration.name, buildUnitValue(parsed, unitText));
+            setPreviewOverride(declaration.name, buildUnitValue(parsed, unitText));
         }
     };
 
@@ -154,7 +155,7 @@ export const UnitDeclarationRow = memo((declaration: CssUnitDeclaration & Varian
         setUnitText(value);
         const parsed = parseFloat(numberText);
         if (!Number.isNaN(parsed) && value.trim().length > 0) {
-            document.documentElement.style.setProperty(declaration.name, buildUnitValue(parsed, value.trim()));
+            setPreviewOverride(declaration.name, buildUnitValue(parsed, value.trim()));
         }
     };
 
@@ -210,7 +211,7 @@ export const NumberDeclarationRow = memo((declaration: CssNumberDeclaration & Va
         const parsed = parseFloat(text);
         if (Number.isNaN(parsed)) {
             setText(String(declaration.number));
-            document.documentElement.style.setProperty(declaration.name, String(declaration.number));
+            clearPreviewOverride(declaration.name);
             return;
         }
         setText(String(parsed));
@@ -222,7 +223,7 @@ export const NumberDeclarationRow = memo((declaration: CssNumberDeclaration & Va
         setText(value);
         const parsed = parseFloat(value);
         if (!Number.isNaN(parsed)) {
-            document.documentElement.style.setProperty(declaration.name, String(parsed));
+            setPreviewOverride(declaration.name, String(parsed));
         }
     };
 
