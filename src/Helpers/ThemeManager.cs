@@ -131,7 +131,7 @@ namespace ExtraUITheme.Helpers
 
             foreach (string presetName in BuiltInPresetNames)
             {
-                string resourceName = $"{namespaceName}.embedded.Themes.{presetName}.json";
+                string resourceName = $"{namespaceName}.embedded.Themes.{presetName}V2.json";
                 try
                 {
                     using Stream stream = assembly.GetManifestResourceStream(resourceName);
