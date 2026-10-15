@@ -31,6 +31,7 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
 
         private ProxyAction m_UndoAction, m_RedoAction;
         private EventBinding<int> m_OnUndoShortcut, m_OnRedoShortcut;
+        private EventBinding<ImportReport> m_OnImportAnalyzed;
 
         protected override void OnCreate()
         {
@@ -50,6 +51,8 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             AddBinding(new TriggerBinding("EUT", "DeleteTheme", DeleteTheme));
             AddBinding(new TriggerBinding("EUT", "CloneTheme", CloneTheme));
             AddBinding(new TriggerBinding<string, string, bool>("EUT", "ImportTheme", ImportTheme));
+            AddBinding(new TriggerBinding<string>("EUT", "AnalyzeImport", AnalyzeImport));
+            AddBinding(new TriggerBinding("EUT", "RemoveThemeIssues", RemoveThemeIssues));
             AddBinding(new TriggerBinding<string, string>("EUT", "SetOverride", SetOverride));
             AddBinding(new TriggerBinding<bool>("EUT", "SetAutoSave", SetAutoSave));
             AddBinding(new TriggerBinding("EUT", "SaveTheme", SaveTheme));
@@ -58,6 +61,7 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
 
             AddBinding(m_OnUndoShortcut = new EventBinding<int>("EUT", "OnUndoShortcut"));
             AddBinding(m_OnRedoShortcut = new EventBinding<int>("EUT", "OnRedoShortcut"));
+            AddBinding(m_OnImportAnalyzed = new EventBinding<ImportReport>("EUT", "OnImportAnalyzed", new ValueWriter<ImportReport>()));
 
             m_UndoAction = EUT.m_Setting.GetAction(EUT.m_Setting.UndoBinding.actionName);
             m_RedoAction = EUT.m_Setting.GetAction(EUT.m_Setting.RedoBinding.actionName);
@@ -158,6 +162,39 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             m_HasUnsavedChangesBinding.Update();
         }
 
+        // Triggers have no return value, so the report comes back through the OnImportAnalyzed event.
+        private void AnalyzeImport(string themeJson)
+        {
+            m_OnImportAnalyzed.Trigger(ImportReport.Analyze(themeJson));
+        }
+
+        // The panel's "Clean up" - reverts every variable with a warning to the game default, one undo step per variable.
+        private void RemoveThemeIssues()
+        {
+            Theme active = ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName);
+            if (active == null || active.IsBuiltIn) return;
+
+            List<ThemeIssue> warnings = ThemeValidator.Validate(active).FindAll(i => i.IsWarning);
+            if (warnings.Count == 0) return;
+
+            foreach (ThemeIssue issue in warnings)
+            {
+                active.Overrides.TryGetValue(issue.Name, out string previousValue);
+                PushHistory(issue.Name, previousValue, null);
+                active.RemoveOverride(issue.Name);
+            }
+
+            if (m_AutoSave)
+            {
+                SaveTheme();
+            }
+            else
+            {
+                m_AvailableThemesBinding.Update();
+                m_HasUnsavedChangesBinding.Update();
+            }
+        }
+
         // Forks a built-in theme into a new user theme first, since built-ins are read-only.
         private void SetOverride(string variableName, string rawValue)
         {
@@ -218,7 +255,7 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             m_AvailableThemesBinding.Update();
         }
 
-        // One undoable step; PreviousValue is null when the variable had no override before the edit, meaning Undo must remove it rather than restore a value.
+        // One undoable step; PreviousValue is null when the variable had no override before the edit, meaning Undo must remove it rather than restore a value. NewValue is null for a removal (RemoveThemeIssues), meaning Redo removes it again.
         private readonly struct HistoryEntry
         {
             internal readonly string VariableName;
@@ -279,7 +316,8 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
 
             HistoryEntry entry = m_RedoStack[^1];
             m_RedoStack.RemoveAt(m_RedoStack.Count - 1);
-            active.SetOverride(entry.VariableName, entry.NewValue);
+            if (entry.NewValue == null) active.RemoveOverride(entry.VariableName);
+            else active.SetOverride(entry.VariableName, entry.NewValue);
             m_UndoStack.Add(entry);
 
             if (m_AutoSave)

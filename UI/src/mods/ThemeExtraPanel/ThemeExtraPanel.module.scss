@@ -45,6 +45,46 @@
     padding-left: var(--gap3);
 }
 
+// Above the content: the active theme has overrides that no longer match the game's CSS (ThemeValidator).
+.issuesBanner {
+    display: flex;
+    align-items: center;
+    column-gap: var(--gap2);
+    flex: 0 0 auto;
+    margin-top: var(--gap2);
+    margin-right: var(--gap3);
+    margin-left: var(--gap3);
+    padding-top: 6rem;
+    padding-right: var(--gap2);
+    padding-bottom: 6rem;
+    padding-left: var(--gap2);
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--warningColor);
+    border-left-width: 3rem;
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+}
+
+.issuesBannerIcon {
+    flex: 0 0 auto;
+    width: 16rem;
+    height: 16rem;
+    --iconColor: var(--warningColor);
+}
+
+.issuesBannerText {
+    flex: 1 1 auto;
+    font-size: var(--fontSizeS);
+    color: var(--normalTextColor);
+}
+
 // display:flex + one <span> per chunk, not bare text siblings - cohtml doesn't flow plain text nodes next to each other reliably.
 .countLine {
     display: flex;

@@ -7,11 +7,15 @@ string root = Path.GetDirectoryName(Here())!;
 string managed = Environment.GetEnvironmentVariable("CSII_MANAGEDPATH") ?? throw new Exception("CSII_MANAGEDPATH is not set.");
 string modDll = Path.GetFullPath(Path.Combine(root, "..", "..", "bin", "Release", "net48", "ExtraUITheme.dll"));
 
-// Game assemblies (Colossal.Core for the JSON decoder, Colossal.UI.Binding for Theme's interface) come from the game's Managed folder.
+// Game assemblies (Colossal.Core for the JSON decoder, Colossal.UI.Binding for Theme's interface) come from the game's Managed folder,
+// mod dependencies (ExtraLib, referenced by ThemeManager) from the local Mods folder.
+string localMods = Environment.GetEnvironmentVariable("CSII_LOCALMODSPATH") ?? "";
 AppDomain.CurrentDomain.AssemblyResolve += (_, e) =>
 {
-    string candidate = Path.Combine(managed, new AssemblyName(e.Name).Name + ".dll");
-    return File.Exists(candidate) ? Assembly.LoadFrom(candidate) : null;
+    string name = new AssemblyName(e.Name).Name;
+    foreach (string candidate in new[] { Path.Combine(managed, name + ".dll"), Path.Combine(localMods, name, name + ".dll") })
+        if (File.Exists(candidate)) return Assembly.LoadFrom(candidate);
+    return null;
 };
 
 Type serializer = Assembly.LoadFrom(modDll).GetType("ExtraUITheme.Helpers.ThemeFormat.ThemeSerializer")!;
@@ -82,6 +86,41 @@ Console.WriteLine("theme.v99.json");
 r = ReadFixture("theme.v99.json");
 Check("status TooNew", r.Status == "TooNew");
 Check("nothing loaded", r.Theme == null);
+
+// Validator: a small stand-in for the game's index.css instead of the real one, so the expected issues never drift with game updates.
+Type validator = serializer.Assembly.GetType("ExtraUITheme.Helpers.ThemeFormat.ThemeValidator")!;
+Type extractor = serializer.Assembly.GetType("ExtraUITheme.Helpers.CssVariableExtractor")!;
+object gameDeclarations = extractor.GetMethod("ParseCss", BindingFlags.NonPublic | BindingFlags.Static)!
+    .Invoke(null, new object[] { File.ReadAllText(Path.Combine(root, "game.mini.css")) })!;
+validator.GetMethod("SetGameDeclarations", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, new[] { gameDeclarations });
+MethodInfo validate = validator.GetMethod("Validate", BindingFlags.NonPublic | BindingFlags.Static)!;
+Dictionary<string, string> IssuesOf(object theme) => ((IEnumerable)validate.Invoke(null, new[] { theme })!).Cast<object>()
+    .ToDictionary(i => (string)Field(i, "Name"), i => Field(i, "Kind").ToString());
+
+Console.WriteLine("theme.issues.json against game.mini.css");
+r = ReadFixture("theme.issues.json");
+var issues = IssuesOf(r.Theme);
+Check("variable gone from the game: Missing", issues.GetValueOrDefault("--removedVar") == "Missing");
+Check("not a CSS value where a color is expected: InvalidValue", issues.GetValueOrDefault("--accentColorNormal") == "InvalidValue");
+Check("color on a size variable: KindChanged", issues.GetValueOrDefault("--panelRadius") == "KindChanged");
+Check("var() to an unknown variable: BrokenReference", issues.GetValueOrDefault("--textColor") == "BrokenReference");
+Check("same as the game default: Redundant", issues.GetValueOrDefault("--opacity") == "Redundant");
+Check("free-form keyword variable accepts anything", !issues.ContainsKey("--fontFamily"));
+Check("valid color is fine", !issues.ContainsKey("--highlight"));
+Check("exactly 5 issues", issues.Count == 5);
+Check("theme itself untouched", Count(Field(r.Theme, "Overrides")) == 7);
+
+Console.WriteLine("ImportReport.Analyze");
+MethodInfo analyze = serializer.Assembly.GetType("ExtraUITheme.Helpers.ThemeFormat.ImportReport")!.GetMethod("Analyze", BindingFlags.NonPublic | BindingFlags.Static)!;
+object Analyze(string json) => analyze.Invoke(null, new object[] { json })!;
+object report = Analyze(File.ReadAllText(Path.Combine(root, "theme.issues.json")));
+Check("Ok with name, count and issues", Field(report, "Status").ToString() == "Ok" && (string)Field(report, "Name") == "Old theme"
+    && (int)Field(report, "OverrideCount") == 7 && Count(Field(report, "Issues")) == 5);
+Check("not JSON: Invalid", Field(Analyze("not json"), "Status").ToString() == "Invalid");
+Check("array: Invalid", Field(Analyze("[1, 2]"), "Status").ToString() == "Invalid");
+Check("unrelated object: Invalid", Field(Analyze("{\"foo\": \"bar\"}"), "Status").ToString() == "Invalid");
+Check("empty object: Empty", Field(Analyze("{}"), "Status").ToString() == "Empty");
+Check("newer version: TooNew", Field(Analyze(File.ReadAllText(Path.Combine(root, "theme.v99.json"))), "Status").ToString() == "TooNew");
 
 Console.WriteLine();
 Console.WriteLine("--- theme.v2.json written back ---");

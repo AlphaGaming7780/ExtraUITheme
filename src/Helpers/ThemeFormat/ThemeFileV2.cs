@@ -25,13 +25,20 @@ namespace ExtraUITheme.Helpers.ThemeFormat
             public bool FollowAccentHue;
         }
 
-        internal Theme ToTheme() => new Theme
+        internal Theme ToTheme()
         {
-            Name = Name,
-            Overrides = Overrides ?? new Dictionary<string, string>(),
-            Manual = new HashSet<string>(Manual ?? new string[0]),
-            Palette = new List<PaletteEntry>(Palette ?? new PaletteEntry[0]),
-        };
+            Dictionary<string, string> overrides = Overrides ?? new Dictionary<string, string>();
+            HashSet<string> manual = new HashSet<string>(Manual ?? new string[0]);
+            // A name in Manual with no value is an internal inconsistency (hand-edited file), not a user mistake - dropped silently.
+            manual.IntersectWith(overrides.Keys);
+            return new Theme
+            {
+                Name = Name,
+                Overrides = overrides,
+                Manual = manual,
+                Palette = new List<PaletteEntry>(Palette ?? new PaletteEntry[0]),
+            };
+        }
 
         internal static ThemeFileV2 FromTheme(Theme theme)
         {

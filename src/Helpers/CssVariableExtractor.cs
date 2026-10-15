@@ -13,8 +13,9 @@ namespace ExtraUITheme.Helpers
         // Relative to Application.dataPath (".../Cities2_Data"), so this works regardless of the Steam install location.
         private const string kRelativeCssPath = "Content/Game/UI/index.css";
 
+        // The trailing ';' is optional on a block's last declaration, as CSS allows.
         private static readonly Regex kDeclarationPattern = new Regex(
-            @"(--[a-zA-Z0-9_-]+)\s*:\s*([^;{}]+);",
+            @"(--[a-zA-Z0-9_-]+)\s*:\s*([^;{}]+)(?:;|$)",
             RegexOptions.Compiled);
 
         private static readonly Regex kVarRefPattern = new Regex(
@@ -93,18 +94,22 @@ namespace ExtraUITheme.Helpers
         public static List<CssDeclaration> ExtractAll()
         {
             EUT.Logger.Info("ExtractAll");
-            var results = new List<CssDeclaration>();
 
             string path = ResolveCssPath();
             if (!File.Exists(path))
             {
                 EUT.Logger.Warn($"CssVariableExtractor: file not found at {path}");
-                return results;
+                return new List<CssDeclaration>();
             }
 
-            string css = File.ReadAllText(path);
-            ParseRules(css, null, results);
+            return ParseCss(File.ReadAllText(path));
+        }
 
+        // Split from ExtractAll so tests can feed a small CSS string without the game's data path.
+        internal static List<CssDeclaration> ParseCss(string css)
+        {
+            var results = new List<CssDeclaration>();
+            ParseRules(css, null, results);
             return results;
         }
 
@@ -150,7 +155,8 @@ namespace ExtraUITheme.Helpers
             }
         }
 
-        private static CssDeclaration Classify(string selector, string name, string rawValue)
+        // Also used on theme values (ThemeValidator) so both sides of a comparison are classified the same way.
+        internal static CssDeclaration Classify(string selector, string name, string rawValue)
         {
             string value = rawValue.Trim();
             Match m;

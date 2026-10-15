@@ -24,6 +24,7 @@ import { resolveOverrideFields } from "../Helpers/resolveOverride";
 import { ExportDialog, ImportDialog } from "./Dialogs/ExportImportDialogs";
 import { RenameThemeDialog } from "./Dialogs/RenameThemeDialog";
 import { DeleteThemeDialog } from "./Dialogs/DeleteThemeDialog";
+import { countWarnings, ThemeIssuesDialog } from "./Dialogs/ThemeIssuesReport";
 import { Masonry } from "./Masonry";
 import { useCompactWidth } from "../Helpers/useCompactWidth";
 import { usePanelDialogBounds } from "../Helpers/usePanelDialogBounds";
@@ -122,6 +123,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const [showImport, setShowImport] = useState(false);
         const [showRename, setShowRename] = useState(false);
         const [showDelete, setShowDelete] = useState(false);
+        const [showIssues, setShowIssues] = useState(false);
         const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
         // Every Simple-mode group ever expanded - its content mounts once and stays mounted so re-opening is free.
         const [everExpandedGroups, setEverExpandedGroups] = useState<Set<string>>(new Set());
@@ -374,6 +376,20 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                 </div>
             </div>
 
+            {/* Only warnings count - a theme whose sole findings are info-only (Redundant) shows no banner. */}
+            {activeTheme && countWarnings(activeTheme.issues) > 0 && (
+                <div className={styles.issuesBanner}>
+                    <TintedIcon className={styles.issuesBannerIcon} src="Media/Glyphs/Warning.svg" />
+                    <span className={styles.issuesBannerText}>
+                        {(translate("ExtraUITheme.Panel.IssuesBanner", "{count} variable(s) of this theme don't match the current game.") ?? "")
+                            .replace("{count}", String(countWarnings(activeTheme.issues)))}
+                    </span>
+                    <button className={toolbarStyles.btn} onClick={() => setShowIssues(true)}>
+                        <span>{translate("ExtraUITheme.Panel.IssuesView", "Details")}</span>
+                    </button>
+                </div>
+            )}
+
             <div className={styles.content}>
                 {mode === "advanced" && (
                     <div className={styles.countLine}>
@@ -403,6 +419,14 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                     currentName={activeTheme.name}
                     takenNames={availableThemes.filter((t) => t.name !== activeTheme.name).map((t) => t.name)}
                     onClose={() => setShowRename(false)}
+                />
+            )}
+            {showIssues && activeTheme && (
+                <ThemeIssuesDialog
+                    themeName={themeDisplayName(activeTheme) ?? activeTheme.name}
+                    issues={activeTheme.issues}
+                    isBuiltIn={activeTheme.isBuiltIn}
+                    onClose={() => setShowIssues(false)}
                 />
             )}
             {showDelete && activeTheme && (

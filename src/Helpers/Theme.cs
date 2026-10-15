@@ -72,6 +72,9 @@ namespace ExtraUITheme.Helpers
             // The exact text a saved file would hold - Export shows this so the UI never has to know the file format.
             writer.PropertyName("exportJson");
             writer.Write(ThemeSerializer.Write(this));
+            // Recomputed on every write, so it always matches the current overrides (a few dictionary lookups per variable).
+            writer.PropertyName("issues");
+            ThemeValidator.WriteIssues(writer, ThemeValidator.Validate(this));
             writer.TypeEnd();
         }
 

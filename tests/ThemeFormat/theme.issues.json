@@ -1,0 +1,13 @@
+{
+  "Version": 2,
+  "Name": "Old theme",
+  "Overrides": {
+    "--removedVar": "#ffffff",
+    "--accentColorNormal": "banana",
+    "--panelRadius": "#ff0000",
+    "--textColor": "var(--gone)",
+    "--opacity": "0.5",
+    "--fontFamily": "Arial",
+    "--highlight": "rgb(1, 2, 3)"
+  }
+}

@@ -1,0 +1,129 @@
+// Footer: a hint on the left, the button pair on the right - same layout as ExportImportDialogs' .footer.
+.footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 10rem;
+    width: 100%;
+}
+
+.buttons {
+    display: flex;
+    column-gap: 10rem;
+}
+
+.hint {
+    font-size: var(--fontSizeXS);
+    color: var(--textColorDim);
+}
+
+// One <span> per chunk - cohtml doesn't flow bare text siblings reliably (see ExportImportDialogs .desc).
+.summary {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: 5rem;
+    width: 100%;
+    font-size: var(--fontSizeS);
+    color: var(--normalTextColor);
+    line-height: 1.5;
+    margin-bottom: var(--gap3);
+    text-align: left;
+}
+
+// A scrolling <div>, not a list element - same box as the export payload so both dialogs look alike.
+.list {
+    box-sizing: border-box;
+    width: 100%;
+    max-height: 400rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    row-gap: var(--gap3);
+    text-align: left;
+    margin-bottom: var(--gap5);
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    row-gap: 4rem;
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--warningColor);
+    border-left-width: 3rem;
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+    padding-top: var(--gap2);
+    padding-right: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap2);
+}
+
+.groupHeader {
+    display: flex;
+    align-items: center;
+    column-gap: 6rem;
+    font-size: var(--fontSizeS);
+    font-weight: 700;
+    color: var(--normalTextColor);
+}
+
+.groupIcon {
+    width: 16rem;
+    height: 16rem;
+    flex: 0 0 auto;
+    --iconColor: var(--warningColor);
+}
+
+.groupCount {
+    font-weight: 600;
+    color: var(--textColorDim);
+}
+
+.groupDesc {
+    font-size: var(--fontSizeXS);
+    color: var(--textColorDim);
+    margin-bottom: 4rem;
+}
+
+// Info-only block: neutral accent instead of the warning one.
+.groupInfo {
+    border-left-color: var(--accentColorNormal);
+
+    .groupIcon {
+        --iconColor: var(--accentColorNormal);
+    }
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 8rem;
+    row-gap: 2rem;
+    font-size: var(--fontSizeXS);
+    line-height: 1.4;
+}
+
+.rowName {
+    font-weight: 600;
+    color: var(--normalTextColor);
+}
+
+.rowValue {
+    color: var(--textColorDim);
+    word-break: break-all;
+}
+
+.rowGame {
+    color: var(--textColorDim);
+    font-style: italic;
+    word-break: break-all;
+}

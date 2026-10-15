@@ -31,6 +31,7 @@ namespace ExtraUITheme.Helpers
         internal static void Initialize()
         {
             m_Themes = new Dictionary<string, Theme>();
+            ThemeValidator.SetGameDeclarations(CssVariableExtractor.ExtractAll());
 
             foreach (Theme theme in LoadBuiltInThemes()) m_Themes[theme.Name] = theme;
             foreach (Theme theme in LoadSharedThemes()) m_Themes[theme.Name] = theme;
@@ -47,6 +48,20 @@ namespace ExtraUITheme.Helpers
                         if (theme != null) m_Themes[theme.Name] = theme;
                     }
                 }
+            }
+
+            LogIssues();
+        }
+
+        // One line per theme that has warnings, for bug reports - the panel shows the details.
+        private static void LogIssues()
+        {
+            foreach (Theme theme in m_Themes.Values)
+            {
+                List<ThemeIssue> warnings = ThemeValidator.Validate(theme).Where(i => i.IsWarning).ToList();
+                if (warnings.Count == 0) continue;
+                string summary = string.Join(", ", warnings.GroupBy(i => i.Kind).Select(g => $"{g.Count()} {g.Key}"));
+                EUT.Logger.Warn($"Theme '{theme.Name}' doesn't fully match the current game CSS: {summary} ({string.Join(", ", warnings.Select(i => i.Name))}).");
             }
         }
 
