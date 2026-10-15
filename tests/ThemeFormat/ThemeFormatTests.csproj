@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!-- Runs the fixtures through the built mod DLL by reflection. .NET 8, not net48: Colossal.Core needs APIs that .NET Framework's mscorlib lacks.
+	Usage, after a Release build of the mod: dotnet run, from this folder -->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>disable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+</Project>

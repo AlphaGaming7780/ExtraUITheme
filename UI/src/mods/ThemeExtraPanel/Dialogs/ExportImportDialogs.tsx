@@ -12,14 +12,17 @@ import styles from "./ExportImportDialogs.module.scss";
 export const ExportDialog = ({
     themeName,
     overrides,
+    payload: livePayload,
     onClose,
 }: {
     themeName: string;
     overrides: Record<string, string>;
+    // Built C#-side (ThemeSerializer.Write), so the export is always exactly the current file format.
+    payload: string;
     onClose: () => void;
 }) => {
-    // Same shape as a saved theme file on disk (ThemeManager.Save) - "Name"/"Overrides", not the lowercase "name"/"overrides" the UI binding uses.
-    const [payload] = useState(() => JSON.stringify({ Name: themeName, Overrides: overrides }, null, 4));
+    // Frozen at open - the dialog shows a snapshot, like the copy it offers.
+    const [payload] = useState(livePayload);
     const { translate } = useLocalization();
     const count = Object.keys(overrides).length;
 
@@ -52,13 +55,13 @@ const suggestAvailableName = (base: string, takenNames: string[]): string => {
 
 const ImportConflictDialog = ({
     conflictingName,
-    overrides,
+    themeJson,
     takenNames,
     onCancel,
     onDone,
 }: {
     conflictingName: string;
-    overrides: Record<string, string>;
+    themeJson: string;
     takenNames: string[];
     onCancel: () => void;
     onDone: () => void;
@@ -69,7 +72,7 @@ const ImportConflictDialog = ({
     const [descBefore, descAfter] = (translate("ExtraUITheme.Panel.ImportConflictDesc", "A theme named {name} already exists. What do you want to do?") ?? "").split("{name}");
 
     const overwrite = () => {
-        trigger("EUT", "ImportTheme", conflictingName, JSON.stringify(overrides), true);
+        trigger("EUT", "ImportTheme", conflictingName, themeJson, true);
         onDone();
     };
 
@@ -83,7 +86,7 @@ const ImportConflictDialog = ({
             setError(translate("ExtraUITheme.Panel.RenameTaken", "A theme with that name already exists."));
             return;
         }
-        trigger("EUT", "ImportTheme", trimmed, JSON.stringify(overrides), false);
+        trigger("EUT", "ImportTheme", trimmed, themeJson, false);
         onDone();
     };
 
@@ -123,7 +126,7 @@ export const ImportDialog = ({
 }) => {
     const [text, setText] = useState("");
     const [error, setError] = useState<string | null>(null);
-    const [conflict, setConflict] = useState<{ name: string; overrides: Record<string, string> } | null>(null);
+    const [conflict, setConflict] = useState<string | null>(null);
     const { translate } = useLocalization();
 
     const doImport = () => {
@@ -141,6 +144,12 @@ export const ImportDialog = ({
         // Accepts "Name"/"Overrides" (a saved theme file, or the current export shape), "name"/"overrides" (older exports,
         // and the live UI binding shape), or a bare overrides map with no wrapper.
         const record = parsed as Record<string, unknown>;
+
+        // Must match ThemeSerializer.CurrentVersion - C# refuses newer files, so say why here instead of importing nothing.
+        if (typeof record.Version === "number" && record.Version > 2) {
+            setError(translate("ExtraUITheme.Panel.ImportTooNewError", "This theme was made with a newer version of the mod. Update the mod to import it."));
+            return;
+        }
         const overridesField = record.Overrides ?? record.overrides;
         const overrides = (overridesField && typeof overridesField === "object" && !Array.isArray(overridesField)
             ? overridesField
@@ -161,11 +170,12 @@ export const ImportDialog = ({
             : translate("ExtraUITheme.Panel.ImportDefaultName", "Imported theme") ?? "Imported theme";
 
         if (takenNames.includes(name)) {
-            setConflict({ name, overrides });
+            setConflict(name);
             return;
         }
 
-        trigger("EUT", "ImportTheme", name, JSON.stringify(overrides), false);
+        // The raw text, not just the overrides - C# runs it through the same versioned reader as a file on disk.
+        trigger("EUT", "ImportTheme", name, text, false);
         onClose();
     };
 
@@ -173,8 +183,8 @@ export const ImportDialog = ({
     if (conflict) {
         return (
             <ImportConflictDialog
-                conflictingName={conflict.name}
-                overrides={conflict.overrides}
+                conflictingName={conflict}
+                themeJson={text}
                 takenNames={takenNames}
                 onCancel={onClose}
                 onDone={onClose}

@@ -49,6 +49,7 @@
     "ExtraUITheme.Panel.ImportPlaceholder": "Paste the exported theme here (JSON)...",
     "ExtraUITheme.Panel.ImportError": "Invalid text - this isn't recognizable JSON.",
     "ExtraUITheme.Panel.ImportEmptyError": "This JSON is valid, but doesn't contain any theme variables.",
+    "ExtraUITheme.Panel.ImportTooNewError": "This theme was made with a newer version of the mod. Update the mod to import it.",
 
     "ExtraUITheme.Panel.ImportConflictTitle": "A theme with that name already exists",
     "ExtraUITheme.Panel.ImportConflictDesc": "A theme named {name} already exists. What do you want to do?",

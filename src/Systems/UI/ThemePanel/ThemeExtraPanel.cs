@@ -1,6 +1,7 @@
 using Colossal.UI.Binding;
 using ExtraLib.Systems.UI.ExtraPanels;
 using ExtraUITheme.Helpers;
+using ExtraUITheme.Helpers.ThemeFormat;
 using Game;
 using Game.Input;
 using System.Collections.Generic;
@@ -142,10 +143,11 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
         }
 
         // `overwrite` is set only by ImportConflictDialog's "Overwrite", after the user explicitly chose that over "Rename".
-        private void ImportTheme(string name, string overridesJson, bool overwrite)
+        // `themeJson` is the pasted text as-is (any format version); `name` is the one the UI settled on, which may differ from the file's.
+        private void ImportTheme(string name, string themeJson, bool overwrite)
         {
-            if (!ThemeManager.TryParseOverrides(overridesJson, out Dictionary<string, string> overrides)) return;
-            Theme imported = ThemeManager.Import(name, overrides, overwrite);
+            if (ThemeManager.TryParseImport(themeJson, out Theme parsed) != ThemeReadStatus.Ok) return;
+            Theme imported = ThemeManager.Import(name, parsed, overwrite);
             if (imported == null) return;
 
             EUT.m_Setting.ActiveThemeName = imported.Name;

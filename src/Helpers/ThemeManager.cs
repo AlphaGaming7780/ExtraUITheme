@@ -1,5 +1,6 @@
 using Colossal.Json;
 using Colossal.PSI.Environment;
+using ExtraUITheme.Helpers.ThemeFormat;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -125,8 +126,14 @@ namespace ExtraUITheme.Helpers
                         continue;
                     }
                     using StreamReader reader = new StreamReader(stream);
-                    Dictionary<string, string> overrides = Decoder.Decode(reader.ReadToEnd()).Make<Dictionary<string, string>>();
-                    themes.Add(new Theme { Name = presetName, IsBuiltIn = true, Overrides = overrides });
+                    if (ThemeSerializer.Read(reader.ReadToEnd(), out Theme theme, out _) != ThemeReadStatus.Ok)
+                    {
+                        EUT.Logger.Error($"Embedded theme '{presetName}' could not be read.");
+                        continue;
+                    }
+                    theme.Name = presetName;
+                    theme.IsBuiltIn = true;
+                    themes.Add(theme);
                 }
                 catch (Exception ex)
                 {
@@ -144,7 +151,18 @@ namespace ExtraUITheme.Helpers
 
             try
             {
-                Theme theme = Decoder.Decode(File.ReadAllText(path)).Make<Theme>();
+                switch (ThemeSerializer.Read(File.ReadAllText(path), out Theme theme, out int sourceVersion))
+                {
+                    case ThemeReadStatus.TooNew:
+                        // Skipped, not loaded read-only: its content can't be trusted, and nothing here ever writes to a file that isn't loaded.
+                        EUT.Logger.Warn($"Skipping theme {path}: format version {sourceVersion} is newer than this build of the mod supports ({ThemeSerializer.CurrentVersion}). Update the mod to use it.");
+                        return null;
+                    case ThemeReadStatus.Invalid:
+                        EUT.Logger.Error($"Skipping theme {path}: not a theme file.");
+                        return null;
+                }
+                theme.Name ??= fileName;
+                theme.LoadedVersion = sourceVersion;
                 theme.IsBuiltIn = isReadOnly;
                 theme.FileName = fileName;
                 theme.FileExtension = Path.GetExtension(path);
@@ -176,10 +194,28 @@ namespace ExtraUITheme.Helpers
             if (!Directory.Exists(UserThemesFolder)) Directory.CreateDirectory(UserThemesFolder);
 
             string path = Path.Combine(UserThemesFolder, theme.FileName + theme.FileExtension);
-            File.WriteAllText(path, Encoder.Encode(theme, EncodeOptions.None));
+            BackUpBeforeUpgrade(theme, path);
+            File.WriteAllText(path, ThemeSerializer.Write(theme));
+            theme.LoadedVersion = ThemeSerializer.CurrentVersion;
 
             theme.IsDirty = false;
             return true;
+        }
+
+        // First save of a file read in an older format: keeps "<file>.v<N>.bak" next to it (never overwritten), so a downgrade of the mod can still get the old file back.
+        private static void BackUpBeforeUpgrade(Theme theme, string path)
+        {
+            if (theme.LoadedVersion >= ThemeSerializer.CurrentVersion || !File.Exists(path)) return;
+
+            string backup = Path.Combine(UserThemesFolder, $"{theme.FileName}.v{theme.LoadedVersion}.bak");
+            try
+            {
+                if (!File.Exists(backup)) File.Copy(path, backup);
+            }
+            catch (Exception ex)
+            {
+                EUT.Logger.Error($"Failed to back up {path} before upgrading it: {ex}");
+            }
         }
 
         // "<source.Name> (copy)", "(copy 2)", ... - registered in the cache immediately, IsDirty, no FileName until it's ever saved.
@@ -194,6 +230,8 @@ namespace ExtraUITheme.Helpers
                 Name = name,
                 IsBuiltIn = false,
                 Overrides = new Dictionary<string, string>(source.Overrides),
+                Manual = new HashSet<string>(source.Manual),
+                Palette = new List<ThemeFileV2.PaletteEntry>(source.Palette),
                 IsDirty = true,
             };
             m_Themes[name] = forked;
@@ -214,7 +252,7 @@ namespace ExtraUITheme.Helpers
         }
 
         // Creates a new theme (or replaces an existing one's overrides in place, with overwrite) and saves it immediately.
-        internal static Theme Import(string name, Dictionary<string, string> overrides, bool overwrite)
+        internal static Theme Import(string name, Theme parsed, bool overwrite)
         {
             if (string.IsNullOrWhiteSpace(name) || IsBuiltInName(name)) return null;
 
@@ -222,7 +260,9 @@ namespace ExtraUITheme.Helpers
             if (existing != null && !overwrite) return null;
 
             Theme theme = existing ?? new Theme { Name = name, IsBuiltIn = false };
-            theme.Overrides = overrides;
+            theme.Overrides = parsed.Overrides;
+            theme.Manual = parsed.Manual;
+            theme.Palette = parsed.Palette;
             theme.IsDirty = true;
             m_Themes[name] = theme;
 
@@ -241,18 +281,18 @@ namespace ExtraUITheme.Helpers
             m_Themes.Remove(theme.Name);
         }
 
-        // False (nothing decoded) if the JSON doesn't decode to a plain string->string map.
-        internal static bool TryParseOverrides(string json, out Dictionary<string, string> overrides)
+        // Same versioned pipeline as files on disk - an import pasted from any older (or bare-map) export comes out in the current format.
+        internal static ThemeReadStatus TryParseImport(string json, out Theme parsed)
         {
             try
             {
-                overrides = Decoder.Decode(json).Make<Dictionary<string, string>>();
-                return overrides != null;
+                return ThemeSerializer.Read(json, out parsed, out _);
             }
-            catch
+            catch (Exception ex)
             {
-                overrides = null;
-                return false;
+                EUT.Logger.Error($"Failed to parse imported theme: {ex}");
+                parsed = null;
+                return ThemeReadStatus.Invalid;
             }
         }
 

@@ -1,0 +1,13 @@
+{
+    "Version": 2,
+    "Name": "Palette V2",
+    "Overrides": {
+        "--accentColorNormal": "rgb(220, 60, 60)",
+        "--selectedColor": "rgb(210, 70, 70)",
+        "--menuTitleNormal": "rgb(255, 200, 200)"
+    },
+    "Manual": ["--menuTitleNormal"],
+    "Palette": [
+        { "From": "rgb(75,195,241)", "Anchors": ["--accentColorNormal", "--selectedColor"], "To": "rgb(220,60,60)", "FollowAccentHue": true }
+    ]
+}

@@ -1,0 +1,7 @@
+{
+    "Name": "Pink V1",
+    "Overrides": {
+        "--accentColorDark": "rgba(236, 26, 129, 1)",
+        "--highlightGreen": "rgb(255, 159, 206)"
+    }
+}

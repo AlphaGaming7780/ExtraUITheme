@@ -1,4 +1,5 @@
 using Colossal.UI.Binding;
+using ExtraUITheme.Helpers.ThemeFormat;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -14,6 +15,15 @@ namespace ExtraUITheme.Helpers
 
         public Dictionary<string, string> Overrides = new Dictionary<string, string>();
 
+        // Variables set by hand (Advanced) - the palette never recomputes them. Every V1 variable lands here on upgrade.
+        public HashSet<string> Manual = new HashSet<string>();
+
+        // Simple mode palette, carried through load/save untouched until the palette UI uses it.
+        public List<ThemeFileV2.PaletteEntry> Palette = new List<ThemeFileV2.PaletteEntry>();
+
+        // Format version of the file this was read from; ThemeManager.Save() backs up the old file once before upgrading it.
+        internal int LoadedVersion = ThemeSerializer.CurrentVersion;
+
         // Null until ThemeManager.Save() first succeeds for this theme; assigned once from Name and never changed again, even across later renames.
         internal string FileName;
 
@@ -26,6 +36,7 @@ namespace ExtraUITheme.Helpers
         internal void SetOverride(string variableName, string rawValue)
         {
             Overrides[variableName] = rawValue;
+            Manual.Add(variableName);
             IsDirty = true;
         }
 
@@ -33,6 +44,7 @@ namespace ExtraUITheme.Helpers
         internal void RemoveOverride(string variableName)
         {
             if (!Overrides.Remove(variableName)) return;
+            Manual.Remove(variableName);
             IsDirty = true;
         }
 
@@ -57,6 +69,9 @@ namespace ExtraUITheme.Helpers
                 writer.Write(item.Value);
             }
             writer.MapEnd();
+            // The exact text a saved file would hold - Export shows this so the UI never has to know the file format.
+            writer.PropertyName("exportJson");
+            writer.Write(ThemeSerializer.Write(this));
             writer.TypeEnd();
         }
 
@@ -66,6 +81,7 @@ namespace ExtraUITheme.Helpers
             if (ReferenceEquals(this, other)) return true;
             if (Name != other.Name || IsBuiltIn != other.IsBuiltIn) return false;
             if (Overrides.Count != other.Overrides.Count) return false;
+            if (!Manual.SetEquals(other.Manual) || Palette.Count != other.Palette.Count) return false;
             return Overrides.All(kvp => other.Overrides.TryGetValue(kvp.Key, out string otherValue) && otherValue == kvp.Value);
         }
 

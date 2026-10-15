@@ -393,7 +393,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
             </div>
 
             {showExport && activeTheme && (
-                <ExportDialog themeName={activeTheme.name} overrides={activeTheme.overrides} onClose={() => setShowExport(false)} />
+                <ExportDialog themeName={activeTheme.name} overrides={activeTheme.overrides} payload={activeTheme.exportJson} onClose={() => setShowExport(false)} />
             )}
             {showImport && (
                 <ImportDialog takenNames={availableThemes.map((t) => t.name)} onClose={() => setShowImport(false)} />
