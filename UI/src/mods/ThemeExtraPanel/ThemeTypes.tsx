@@ -3,10 +3,26 @@ export interface Theme {
     name: string;
     isBuiltIn: boolean;
     overrides: Record<string, string>;
+    // Variables edited in Advanced: Simple mode's palette never writes them.
+    manual: string[];
+    // Simple mode's recolored groups.
+    palette: PaletteEntry[];
     // The theme as a saved file would hold it (ThemeSerializer.Write) - Export shows this verbatim.
     exportJson: string;
     // ThemeValidator's report against the game's current index.css - recomputed by C# on every theme update.
     issues: ThemeIssue[];
+}
+
+// Mirrors ThemeFileV2.PaletteEntry, PascalCase like the file.
+export interface PaletteEntry {
+    // Principal color of the group in the game CSS the entry was made against, "rgb(r,g,b)".
+    From: string;
+    // Variables identifying the group (principal first), tried before From.
+    Anchors: string[];
+    // The user's color for the principal, "rgb(r,g,b)".
+    To: string;
+    // Old hue link, no longer offered: always false in new entries.
+    FollowAccentHue: boolean;
 }
 
 // Same order/values as ThemeIssueKind in src/Helpers/ThemeFormat/ThemeValidator.cs.

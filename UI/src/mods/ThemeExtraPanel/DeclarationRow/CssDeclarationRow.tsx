@@ -2,7 +2,6 @@ import { memo, useEffect, useRef, useState } from "react";
 import { trigger } from "cs2/api";
 import { useLocalization } from "cs2/l10n";
 import { Color } from "cs2/bindings";
-import { ColorField } from "../../../../game-ui/common/input/color-picker/color-field/color-field";
 import {
     CssColorDeclaration,
     CssDeclarationKind,
@@ -13,6 +12,8 @@ import {
 } from "./CssDeclarationTypes";
 import styles from "./CssDeclarationRow.module.scss";
 import { clearPreviewOverride, setPreviewOverride } from "../../Helpers/themeStyleSheet";
+import { LazyColorField } from "../LazyColorField";
+import { startIdentify, stopIdentify } from "../../Helpers/identify";
 
 // VarReference/Keyword are still read-only - writing back a composite/reference value isn't designed yet.
 
@@ -72,22 +73,23 @@ export const ColorDeclarationRow = memo((declaration: CssColorDeclaration & Vari
         trigger("EUT", "SetOverride", declaration.name, buildValue(color));
     };
 
+    const identify = () => startIdentify([declaration.name]);
+
     const valueText = sameColor(color, declaration) ? declaration.rawValue : buildValue(color);
     const swatch = (
-        <ColorField
+        <LazyColorField
             className={styles.swatch}
             value={color}
             onChange={onChange}
             onClosePicker={onClosePicker}
             alpha={!declaration.alphaVarRef}
-            colorWheel
-            hexInput
         />
     );
 
     if (declaration.variant === "card") {
         return (
-            <div className={styles.varCard}>
+            // Identify: hovering the card flashes this variable in the UI.
+            <div className={styles.varCard} onMouseEnter={identify} onMouseLeave={stopIdentify}>
                 <div className={styles.cardHead}>
                     <span className={styles.cardName} title={declaration.name}>{declaration.name}</span>
                     <KindTag kind={declaration.kind} />
@@ -100,7 +102,7 @@ export const ColorDeclarationRow = memo((declaration: CssColorDeclaration & Vari
         );
     }
     return (
-        <div className={styles.varRow}>
+        <div className={styles.varRow} onMouseEnter={identify} onMouseLeave={stopIdentify}>
             <span className={styles.varLabel} title={declaration.name}>{declaration.name}</span>
             <div className={styles.colorControl}>
                 <span className={styles.varValue}>{valueText}</span>

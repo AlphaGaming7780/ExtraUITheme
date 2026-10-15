@@ -43,7 +43,8 @@ const MasonryItemView = memo(({
     </div>
 ));
 
-export const Masonry = ({
+// memo: skips the whole grid when the panel re-renders for unrelated reasons.
+export const Masonry = memo(({
     items, minColumnWidth, gap, virtualize = false,
 }: { items: MasonryItem[]; minColumnWidth: number; gap: number; virtualize?: boolean }) => {
     const minColumnWidthPx = remToPx(minColumnWidth);
@@ -212,4 +213,4 @@ export const Masonry = ({
             })}
         </div>
     );
-};
+});

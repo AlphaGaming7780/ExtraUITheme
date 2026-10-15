@@ -3,7 +3,6 @@ import { useLocalization } from "cs2/l10n";
 import { Tooltip } from "cs2/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ExtraPanelType } from "../ExtraPanelType";
-import { FoldoutItem } from "../../../game-ui/common/foldout/foldout-item";
 import { TintedIcon } from "../../../game-ui/common/image/tinted-icon";
 import { TypedListRenderer } from "../../../game-ui/common/typed-renderer/typed-renderer";
 import { Dropdown } from "../../../game-ui/common/input/dropdown/dropdown";
@@ -29,8 +28,12 @@ import { Masonry } from "./Masonry";
 import { useCompactWidth } from "../Helpers/useCompactWidth";
 import { usePanelDialogBounds } from "../Helpers/usePanelDialogBounds";
 import { isTypingInTextControl } from "../Helpers/KeyboardShortcuts";
+import { analyzeGamePalette, effectiveDefaults } from "../Helpers/palette";
+import { exactNameSearch, PaletteView } from "./SimpleMode/PaletteView";
+import { stopIdentify } from "../Helpers/identify";
 
 const cssDeclarations$ = bindValue<CssDeclaration[]>("EUT", "CssDeclarations");
+const cssVarUsages$ = bindValue<Record<string, number>>("EUT", "CssVarUsages");
 const availableThemes$ = bindValue<Theme[]>("EUT", "AvailableThemes");
 const activeThemeName$ = bindValue<string>("EUT", "ActiveThemeName");
 const autoSave$ = bindValue<boolean>("EUT", "AutoSave");
@@ -38,42 +41,11 @@ const hasUnsavedChanges$ = bindValue<boolean>("EUT", "HasUnsavedChanges");
 // The game's useLegacyInterfaceActive() binding - false means <body> has `overwrite-legacy`.
 const useLegacyInterface$ = bindValue<boolean>("options", "useLegacyInterface");
 
-// The game's modern-UI block, redefining ~80 :root variables.
-const OVERWRITE_LEGACY_SELECTOR = ":root .overwrite-legacy";
-
 // Fired by ThemeExtraPanel.cs's OnPreProcess on the real Ctrl+Z/Ctrl+Y ProxyAction - see KeyboardShortcuts.ts for the text-focus guard this still needs.
 const onUndoShortcut$ = bindEvent<number>("EUT", "OnUndoShortcut");
 const onRedoShortcut$ = bindEvent<number>("EUT", "OnRedoShortcut");
 
 type Mode = "simple" | "advanced";
-
-// Curated "important" variables for Simple mode, grouped by topic - Advanced mode shows every :root-overridable variable flat instead.
-const SIMPLE_GROUPS: { key: string; names: string[] }[] = [
-    { key: "PanelColors", names: ["--panelColorNormal", "--panelColorDark", "--sectionBackgroundColor", "--sectionBorderColor", "--sectionHeaderColor"] },
-    { key: "TextColors", names: ["--normalTextColor", "--textColorDim", "--textColorDisabled", "--textColorDimmer"] },
-    {
-        key: "AccentColors", names: [
-            "--accentColorNormal", "--accentColorNormal-hover", "--accentColorNormal-pressed",
-            "--accentColorDark", "--accentColorDark-hover", "--accentColorDark-pressed", "--accentColorDark-focused",
-            "--accentColorLight", "--accentColorLighter",
-            "--selectedColor", "--selectedColorDark", "--selectedColor-hover", "--selectedColor-active",
-            "--gradientHighlightStart", "--gradientHighlightEnd",
-            "--commonCyan",
-            "--focusedColor",
-            "--highlightBrightBlue", "--highlightLightBlue", "--highlightGreen", "--highlightYellow",
-            "--highlightWarningRed", "--highlightWarningLightRed",
-        ]
-    },
-    { key: "States", names: ["--positiveColor", "--warningColor", "--negativeColor"] },
-    {
-        key: "MenuColors", names: [
-            "--menuPanel1", "--menuPanel2", "--menuPanel3",
-            "--menuControl1", "--menuControl2", "--menuDisabledColor",
-            "--menuText1Normal", "--menuText1Inverted", "--menuText1Disabled",
-            "--menuText2Normal", "--menuText2Inverted", "--menuTitleNormal",
-        ]
-    },
-];
 
 const ALL_KINDS = Object.values(CssDeclarationKind).filter((k) => typeof k === "number") as CssDeclarationKind[];
 
@@ -89,16 +61,13 @@ const dropdownTheme = {
 export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
     ComponentList["ExtraUITheme.Systems.UI.ThemePanel.ThemeExtraPanel"] = (extraPanel: ExtraPanelType) => {
         const declarations = useValue(cssDeclarations$) ?? [];
+        const usages = useValue(cssVarUsages$);
         const availableThemes = useValue(availableThemes$) ?? [];
         const activeThemeName = useValue(activeThemeName$);
         const autoSave = useValue(autoSave$) ?? false;
         const hasUnsavedChanges = useValue(hasUnsavedChanges$) ?? false;
         const useLegacyInterface = useValue(useLegacyInterface$) ?? false;
         const { translate } = useLocalization();
-
-        // This panel's own outer box - tracked so every dialog (ExtraUIThemeDialog.tsx) can cap itself to its size.
-        const panelRef = useRef<HTMLDivElement>(null);
-        usePanelDialogBounds(panelRef);
 
         // Toolbar's top row - once narrower than this threshold, action buttons drop their text label and go icon-only.
         const toolbarRowRef = useRef<HTMLDivElement>(null);
@@ -124,9 +93,14 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const [showRename, setShowRename] = useState(false);
         const [showDelete, setShowDelete] = useState(false);
         const [showIssues, setShowIssues] = useState(false);
-        const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-        // Every Simple-mode group ever expanded - its content mounts once and stays mounted so re-opening is free.
-        const [everExpandedGroups, setEverExpandedGroups] = useState<Set<string>>(new Set());
+
+        // Stops any flash when the panel closes or the mode changes.
+        useEffect(() => stopIdentify, []);
+        useEffect(() => { stopIdentify(); }, [mode]);
+
+        // Panel box, tracked while a dialog is open so dialogs can cap themselves to it.
+        const panelRef = useRef<HTMLDivElement>(null);
+        usePanelDialogBounds(panelRef, showExport || showImport || showRename || showDelete || showIssues);
 
         const toggleKind = (kind: CssDeclarationKind) => {
             setActiveKinds((prev) => prev.includes(kind) ? prev.filter((k) => k !== kind) : [...prev, kind]);
@@ -138,24 +112,8 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
 
         const activeTheme = availableThemes.find((t) => t.name === activeThemeName);
 
-        const toggleGroup = (title: string) => {
-            setExpandedGroups((prev) => {
-                const next = new Set(prev);
-                next.has(title) ? next.delete(title) : next.add(title);
-                return next;
-            });
-            setEverExpandedGroups((prev) => (prev.has(title) ? prev : new Set(prev).add(title)));
-        };
-
         // One declaration per variable with the game default in effect: `:root .overwrite-legacy` wins over :root in the modern UI.
-        const defaultDeclarations = useMemo(() => {
-            const byName = new Map<string, CssDeclaration>();
-            for (const d of declarations) if (d.selector === ":root") byName.set(d.name, d);
-            if (!useLegacyInterface) {
-                for (const d of declarations) if (d.selector === OVERWRITE_LEGACY_SELECTOR) byName.set(d.name, d);
-            }
-            return [...byName.values()];
-        }, [declarations, useLegacyInterface]);
+        const defaultDeclarations = useMemo(() => effectiveDefaults(declarations, useLegacyInterface), [declarations, useLegacyInterface]);
 
         // Patch the defaults with the active theme's live overrides, since ExtractAll() only reads static index.css.
         const effectiveDeclarations = useMemo(() => {
@@ -176,53 +134,21 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
             });
         }, [effectiveDeclarations, activeKinds, search]);
 
-        // Advanced mode no longer groups by selector - just the curated Simple-mode groups remain.
-        const groups = useMemo(() => {
-            return SIMPLE_GROUPS
-                .map((g) => ({
-                    title: g.key,
-                    displayTitle: translate(`ExtraUITheme.Panel.Group[${g.key}]`, g.key),
-                    items: filtered.filter((d) => g.names.includes(d.name)),
-                }))
-                .filter((g) => g.items.length > 0);
-        }, [filtered, translate]);
+        // Simple mode's palette groups, always against the modern UI's defaults.
+        const paletteGroups = useMemo(() => analyzeGamePalette(declarations, usages) ?? [], [declarations, usages]);
 
-        // Memoized so typing in search or toggling a kind chip doesn't rebuild every group node on each keystroke.
-        const simpleMasonryItems = useMemo(() => groups.map((group) => {
-            const expanded = expandedGroups.has(group.title);
-            const everExpanded = everExpandedGroups.has(group.title);
-            return {
-                key: group.title,
-                node: (
-                    <FoldoutItem
-                        className={styles.group}
-                        expanded={expanded}
-                        expandFromContent={false}
-                        initialExpanded={false}
-                        header={
-                            <div className={styles.groupHeader} onClick={() => toggleGroup(group.title)}>
-                                <span className={styles.groupTitle}>{group.displayTitle}</span>
-                                <span className={styles.count}>{group.items.length}</span>
-                                <TintedIcon
-                                    className={styles.groupToggle}
-                                    src={expanded ? "Media/Glyphs/ThickStrokeArrowDown.svg" : "Media/Glyphs/ThickStrokeArrowRight.svg"}
-                                />
-                            </div>
-                        }
-                    >
-                        {everExpanded && <TypedListRenderer components={cssDeclarationRowComponents} data={group.items} props={{}} />}
-                    </FoldoutItem>
-                ),
-            };
-        }), [groups, expandedGroups, everExpandedGroups]);
+        // Member list's link: Advanced mode filtered on exactly that variable.
+        const showInAdvanced = useCallback((name: string) => {
+            setActiveKinds([]);
+            setSearch(exactNameSearch(name));
+            setMode("advanced");
+        }, []);
 
         // Advanced: every overridable variable is its own Masonry cell in the "card" variant, no per-selector grouping.
         const advancedMasonryItems = useMemo(() => filtered.map((d) => ({
             key: d.name,
             node: <TypedListRenderer components={cssDeclarationRowComponents} data={[d]} props={{ variant: "card" }} />,
         })), [filtered]);
-
-        const masonryItems = mode === "simple" ? simpleMasonryItems : advancedMasonryItems;
 
         // "12 / 308 variables" above Advanced's flat grid, since there's no group header to summarize it otherwise.
         const totalRootCount = defaultDeclarations.length;
@@ -237,7 +163,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
         const autoSaveLabel = translate("ExtraUITheme.Panel.AutoSave", "Auto-save") ?? "Auto-save";
 
         return (
-        // Our own multi-child focus boundary, so Dropdown and FoldoutItem groups don't fight over the game Panel's single-child focus slot.
+        // Multi-child focus boundary: the game Panel's focus slot takes a single child.
         <FocusScope>
         <div className={styles.themeExtraPanelContent} ref={panelRef}>
             <div className={styles.toolbar}>
@@ -300,7 +226,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                             </button>
                         </Tooltip>
                         <Tooltip tooltip={saveLabel}>
-                            <button className={toolbarStyles.btn} disabled={!hasUnsavedChanges} onClick={() => trigger("EUT", "SaveTheme", true)}>
+                            <button className={toolbarStyles.btn} disabled={!hasUnsavedChanges} onClick={() => trigger("EUT", "SaveTheme")}>
                                 <TintedIcon className={toolbarStyles.btnIcon} src="Media/Glyphs/Save.svg" />
                                 {!compactActions && <span>{saveLabel}</span>}
                             </button>
@@ -363,6 +289,8 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                     )}
                 </div>
 
+                {/* Kinds only mean something in Advanced - Simple mode is all colors. */}
+                {mode === "advanced" && (
                 <div className={chipStyles.filterChips}>
                     {ALL_KINDS.map((kind) => (
                         <span
@@ -374,6 +302,7 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
                         </span>
                     ))}
                 </div>
+                )}
             </div>
 
             {/* Only warnings count - a theme whose sole findings are info-only (Redundant) shows no banner. */}
@@ -391,21 +320,20 @@ export const ThemeExtraPanel = (ComponentList: { [x: string]: any; }): any => {
             )}
 
             <div className={styles.content}>
-                {mode === "advanced" && (
-                    <div className={styles.countLine}>
-                        <span>
-                            {(translate("ExtraUITheme.Panel.VariablesCountFraction", "{filtered} / {total} variable(s)") ?? "")
-                                .replace("{filtered}", String(filtered.length))
-                                .replace("{total}", String(totalRootCount))}
-                        </span>
-                    </div>
+                {mode === "simple" ? (
+                    <PaletteView groups={paletteGroups} theme={activeTheme} search={search} onShowInAdvanced={showInAdvanced} />
+                ) : (
+                    <>
+                        <div className={styles.countLine}>
+                            <span>
+                                {(translate("ExtraUITheme.Panel.VariablesCountFraction", "{filtered} / {total} variable(s)") ?? "")
+                                    .replace("{filtered}", String(filtered.length))
+                                    .replace("{total}", String(totalRootCount))}
+                            </span>
+                        </div>
+                        <Masonry minColumnWidth={250} gap={12} items={advancedMasonryItems} virtualize />
+                    </>
                 )}
-                <Masonry
-                    minColumnWidth={250}
-                    gap={12}
-                    items={masonryItems}
-                    virtualize={mode === "advanced"}
-                />
             </div>
 
             {showExport && activeTheme && (

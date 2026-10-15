@@ -42,7 +42,9 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             ValidateActiveThemeName();
 
             AddBinding(m_CssDeclarationsBinding = new GetterValueBinding<List<CssDeclaration>>("EUT", "CssDeclarations", CssVariableExtractor.ExtractAll, new ListWriter<CssDeclaration>()));
-            AddBinding(m_AvailableThemesBinding = new GetterValueBinding<List<Theme>>("EUT", "AvailableThemes", ThemeManager.GetAllThemes, new ListWriter<Theme>()));
+            // Read once: index.css doesn't change while the game runs.
+            AddBinding(new GetterValueBinding<CssVarUsages>("EUT", "CssVarUsages", CssVariableExtractor.ExtractUsages, new ValueWriter<CssVarUsages>()));
+            AddBinding(m_AvailableThemesBinding =new GetterValueBinding<List<Theme>>("EUT", "AvailableThemes", ThemeManager.GetAllThemes, new ListWriter<Theme>()));
             AddBinding(m_ActiveThemeNameBinding = new GetterValueBinding<string>("EUT", "ActiveThemeName", () => EUT.m_Setting.ActiveThemeName));
             AddBinding(m_AutoSaveBinding = new GetterValueBinding<bool>("EUT", "AutoSave", () => m_AutoSave));
             AddBinding(m_HasUnsavedChangesBinding = new GetterValueBinding<bool>("EUT", "HasUnsavedChanges", () => ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName)?.IsDirty ?? false));
@@ -54,6 +56,10 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             AddBinding(new TriggerBinding<string>("EUT", "AnalyzeImport", AnalyzeImport));
             AddBinding(new TriggerBinding("EUT", "RemoveThemeIssues", RemoveThemeIssues));
             AddBinding(new TriggerBinding<string, string>("EUT", "SetOverride", SetOverride));
+            AddBinding(new TriggerBinding<PaletteCommand>("EUT", "SetPaletteColor", SetPaletteColor));
+            AddBinding(new TriggerBinding<PaletteCommand>("EUT", "ResetPaletteColor", ResetPaletteColor));
+            AddBinding(new TriggerBinding<string, string>("EUT", "ReattachVariable", ReattachVariable));
+            AddBinding(new TriggerBinding<PaletteCommand>("EUT", "SyncPalette", SyncPalette));
             AddBinding(new TriggerBinding<bool>("EUT", "SetAutoSave", SetAutoSave));
             AddBinding(new TriggerBinding("EUT", "SaveTheme", SaveTheme));
             AddBinding(new TriggerBinding("EUT", "Undo", Undo));
@@ -168,7 +174,7 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             m_OnImportAnalyzed.Trigger(ImportReport.Analyze(themeJson));
         }
 
-        // The panel's "Clean up" - reverts every variable with a warning to the game default, one undo step per variable.
+        // "Clean up": reverts every variable with a warning to the game default, as one undo step.
         private void RemoveThemeIssues()
         {
             Theme active = ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName);
@@ -177,26 +183,53 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             List<ThemeIssue> warnings = ThemeValidator.Validate(active).FindAll(i => i.IsWarning);
             if (warnings.Count == 0) return;
 
-            foreach (ThemeIssue issue in warnings)
+            Edit(theme =>
             {
-                active.Overrides.TryGetValue(issue.Name, out string previousValue);
-                PushHistory(issue.Name, previousValue, null);
-                active.RemoveOverride(issue.Name);
-            }
-
-            if (m_AutoSave)
-            {
-                SaveTheme();
-            }
-            else
-            {
-                m_AvailableThemesBinding.Update();
-                m_HasUnsavedChangesBinding.Update();
-            }
+                foreach (ThemeIssue issue in warnings) theme.RemoveOverride(issue.Name);
+            });
         }
 
-        // Forks a built-in theme into a new user theme first, since built-ins are read-only.
+        // Advanced mode: a hand edit, which detaches the variable from the palette (Theme.Manual).
         private void SetOverride(string variableName, string rawValue)
+        {
+            Edit(theme => theme.SetOverride(variableName, rawValue));
+        }
+
+        // Simple mode: one palette color and every value derived from it, computed UI-side (palette.ts).
+        private void SetPaletteColor(PaletteCommand command)
+        {
+            if (command.Entry == null) return;
+            Edit(theme => theme.SetPaletteColor(command.Entry, command.Values));
+        }
+
+        private void ResetPaletteColor(PaletteCommand command)
+        {
+            if (command.Entry == null) return;
+            Edit(theme => theme.ResetPaletteColor(command.Entry, command.Names));
+        }
+
+        // `value`: the palette-derived value, or null for the game default.
+        private void ReattachVariable(string variableName, string value)
+        {
+            Edit(theme => theme.ReattachVariable(variableName, value));
+        }
+
+        // Sent by the UI when the re-derived palette differs (game update); not an undo step, clears history.
+        private void SyncPalette(PaletteCommand command)
+        {
+            Theme active = ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName);
+            if (active == null || command.Palette == null) return;
+
+            if (!active.SyncPalette(command.Palette, command.Values, command.Names)) return;
+            ClearHistory();
+
+            // Built-ins: re-derived values live in memory only.
+            if (active.IsBuiltIn) active.IsDirty = false;
+            Commit();
+        }
+
+        // Every user edit: forks a built-in first, then records one undo step.
+        private void Edit(System.Action<Theme> change)
         {
             Theme active = ThemeManager.GetTheme(EUT.m_Setting.ActiveThemeName);
             if (active == null) return;
@@ -209,11 +242,22 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
                 m_ActiveThemeNameBinding.Update();
             }
 
-            active.Overrides.TryGetValue(variableName, out string previousValue);
-            PushHistory(variableName, previousValue, rawValue);
+            ThemeState before = ThemeState.Capture(active);
+            change(active);
+            ThemeState after = ThemeState.Capture(active);
+            if (!after.SameAs(before))
+            {
+                m_UndoStack.Add(new HistoryEntry(before, after));
+                if (m_UndoStack.Count > kMaxHistory) m_UndoStack.RemoveAt(0);
+                // A fresh edit clears the redo history.
+                m_RedoStack.Clear();
+            }
 
-            active.SetOverride(variableName, rawValue);
+            Commit();
+        }
 
+        private void Commit()
+        {
             if (m_AutoSave)
             {
                 SaveTheme();
@@ -255,26 +299,19 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             m_AvailableThemesBinding.Update();
         }
 
-        // One undoable step; PreviousValue is null when the variable had no override before the edit, meaning Undo must remove it rather than restore a value. NewValue is null for a removal (RemoveThemeIssues), meaning Redo removes it again.
+        private const int kMaxHistory = 200;
+
+        // One undoable step: the theme's whole editable state on each side (ThemeState).
         private readonly struct HistoryEntry
         {
-            internal readonly string VariableName;
-            internal readonly string PreviousValue;
-            internal readonly string NewValue;
+            internal readonly ThemeState Before;
+            internal readonly ThemeState After;
 
-            internal HistoryEntry(string variableName, string previousValue, string newValue)
+            internal HistoryEntry(ThemeState before, ThemeState after)
             {
-                VariableName = variableName;
-                PreviousValue = previousValue;
-                NewValue = newValue;
+                Before = before;
+                After = after;
             }
-        }
-
-        // A fresh edit invalidates whatever redo history existed - standard undo/redo semantics.
-        private void PushHistory(string variableName, string previousValue, string newValue)
-        {
-            m_UndoStack.Add(new HistoryEntry(variableName, previousValue, newValue));
-            m_RedoStack.Clear();
         }
 
         private void ClearHistory()
@@ -292,19 +329,9 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
 
             HistoryEntry entry = m_UndoStack[^1];
             m_UndoStack.RemoveAt(m_UndoStack.Count - 1);
-            if (entry.PreviousValue == null) active.RemoveOverride(entry.VariableName);
-            else active.SetOverride(entry.VariableName, entry.PreviousValue);
+            entry.Before.RestoreTo(active);
             m_RedoStack.Add(entry);
-
-            if (m_AutoSave)
-            {
-                SaveTheme();
-            }
-            else
-            {
-                m_AvailableThemesBinding.Update();
-                m_HasUnsavedChangesBinding.Update();
-            }
+            Commit();
         }
 
         private void Redo()
@@ -316,19 +343,9 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
 
             HistoryEntry entry = m_RedoStack[^1];
             m_RedoStack.RemoveAt(m_RedoStack.Count - 1);
-            if (entry.NewValue == null) active.RemoveOverride(entry.VariableName);
-            else active.SetOverride(entry.VariableName, entry.NewValue);
+            entry.After.RestoreTo(active);
             m_UndoStack.Add(entry);
-
-            if (m_AutoSave)
-            {
-                SaveTheme();
-            }
-            else
-            {
-                m_AvailableThemesBinding.Update();
-                m_HasUnsavedChangesBinding.Update();
-            }
+            Commit();
         }
 
         protected override void OnProcess()

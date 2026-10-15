@@ -9,4 +9,10 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
 
+	<!-- Compile-time only, for FakeJsonReader: at run time Program.cs's resolver loads them from the game's Managed folder. -->
+	<ItemGroup>
+		<Reference Include="Colossal.UI.Binding" HintPath="$(CSII_MANAGEDPATH)\Colossal.UI.Binding.dll" Private="false" />
+		<Reference Include="cohtml.Net" HintPath="$(CSII_MANAGEDPATH)\cohtml.Net.dll" Private="false" />
+	</ItemGroup>
+
 </Project>

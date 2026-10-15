@@ -13,6 +13,9 @@ namespace ExtraUITheme.Helpers
         // Relative to Application.dataPath (".../Cities2_Data"), so this works regardless of the Steam install location.
         private const string kRelativeCssPath = "Content/Game/UI/index.css";
 
+        // Same pattern as palette.js' countUsages.
+        private static readonly Regex kVarUsagePattern = new Regex(@"var\(\s*(--[\w-]+)", RegexOptions.Compiled);
+
         // The trailing ';' is optional on a block's last declaration, as CSS allows.
         private static readonly Regex kDeclarationPattern = new Regex(
             @"(--[a-zA-Z0-9_-]+)\s*:\s*([^;{}]+)(?:;|$)",
@@ -103,6 +106,25 @@ namespace ExtraUITheme.Helpers
             }
 
             return ParseCss(File.ReadAllText(path));
+        }
+
+        // var() reads per variable in the whole stylesheet, used to pick principals; empty when index.css is missing.
+        public static CssVarUsages ExtractUsages()
+        {
+            string path = ResolveCssPath();
+            return new CssVarUsages(File.Exists(path) ? CountVarUsages(File.ReadAllText(path)) : new Dictionary<string, int>());
+        }
+
+        internal static Dictionary<string, int> CountVarUsages(string css)
+        {
+            var counts = new Dictionary<string, int>();
+            foreach (Match match in kVarUsagePattern.Matches(css))
+            {
+                string name = match.Groups[1].Value;
+                counts.TryGetValue(name, out int count);
+                counts[name] = count + 1;
+            }
+            return counts;
         }
 
         // Split from ExtractAll so tests can feed a small CSS string without the game's data path.

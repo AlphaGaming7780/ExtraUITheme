@@ -1,0 +1,242 @@
+// Longhand per-side/per-corner properties throughout - see ThemeExtraPanel.module.scss for why.
+
+.section {
+    margin-bottom: var(--gap4);
+}
+
+.sectionTitle {
+    font-size: var(--fontSizeXS);
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--textColorDim);
+    margin-bottom: var(--gap2);
+}
+
+.grid {
+    display: flex;
+    align-items: flex-start;
+    column-gap: 12rem;
+}
+
+// One column of cards (see useColumnCount): equal widths, cards stacked.
+.column {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    row-gap: 12rem;
+}
+
+// No overflow:hidden: a clipping layer per card is costly in cohtml.
+.card {
+    width: 100%;
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--sectionBorderColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+}
+
+// Recolored by the theme (has a palette entry).
+.changed {
+    border-left-color: var(--accentColorNormal);
+    border-left-width: 3rem;
+}
+
+.head {
+    display: flex;
+    align-items: center;
+    column-gap: var(--gap2);
+    padding-top: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap3);
+    padding-right: var(--gap3);
+}
+// Rounded like the card's top corners.
+.head:hover {
+    background-color: var(--hoverColor);
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+}
+
+.label {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.sub {
+    font-size: var(--fontSizeXS);
+    color: var(--textColorDim);
+    overflow-wrap: anywhere;
+}
+
+// One <span> per chunk - cohtml doesn't flow bare text siblings reliably.
+.meta {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--gap2);
+    font-size: var(--fontSizeXS);
+    color: var(--textColorDim);
+}
+
+.manualMeta {
+    color: var(--warningColor);
+}
+
+.toggle {
+    flex: 0 0 auto;
+    width: 20rem;
+    height: 20rem;
+    --iconColor: var(--textColorDim);
+}
+
+.iconButtonBox {
+    flex: 0 0 auto;
+    display: flex;
+}
+
+.iconButton {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22rem;
+    height: 22rem;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    background-color: transparent;
+    border-width: 0;
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+}
+.iconButton:hover {
+    background-color: var(--hoverColorBright);
+}
+.iconButtonIcon {
+    width: 14rem;
+    height: 14rem;
+    --iconColor: var(--normalTextColor);
+}
+.iconButton[disabled] .iconButtonIcon {
+    --iconColor: var(--textColorDisabled);
+}
+
+// Every member's current color, side by side.
+.strip {
+    display: flex;
+    height: 5rem;
+    margin-right: var(--gap3);
+    margin-bottom: var(--gap2);
+    margin-left: var(--gap3);
+}
+.stripCell {
+    flex: 1 1 0;
+}
+
+.members {
+    padding-top: var(--gap1);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap3);
+    padding-right: var(--gap2);
+}
+
+.member {
+    display: flex;
+    align-items: center;
+    column-gap: var(--gap2);
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    font-size: var(--fontSizeS);
+}
+
+.principal {
+    font-weight: 600;
+}
+
+.memberSwatch {
+    flex: 0 0 auto;
+    width: 14rem;
+    height: 14rem;
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: rgba(0, 0, 0, 0.4);
+    border-right-color: rgba(0, 0, 0, 0.4);
+    border-bottom-color: rgba(0, 0, 0, 0.4);
+    border-left-color: rgba(0, 0, 0, 0.4);
+}
+.memberSwatchColor {
+    width: 100%;
+    height: 100%;
+}
+
+.memberName {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-wrap: anywhere;
+    font-family: var(--fontFamily);
+}
+
+.alias {
+    font-size: var(--fontSizeXS);
+    font-weight: normal;
+    color: var(--textColorDim);
+}
+
+.arrow {
+    flex: 0 0 auto;
+    color: var(--textColorDim);
+}
+
+.orphans {
+    margin-bottom: var(--gap4);
+    padding-top: var(--gap2);
+    padding-right: var(--gap2);
+    padding-bottom: var(--gap2);
+    padding-left: var(--gap3);
+    background-color: var(--sectionBackgroundColor);
+    border-width: 1rem;
+    border-style: solid;
+    border-top-color: var(--sectionBorderColor);
+    border-right-color: var(--sectionBorderColor);
+    border-bottom-color: var(--sectionBorderColor);
+    border-left-color: var(--warningColor);
+    border-left-width: 3rem;
+    border-top-left-radius: var(--panelRadiusInner);
+    border-top-right-radius: var(--panelRadiusInner);
+    border-bottom-right-radius: var(--panelRadiusInner);
+    border-bottom-left-radius: var(--panelRadiusInner);
+}
+
+.orphansHead {
+    display: flex;
+    align-items: center;
+    column-gap: var(--gap2);
+    font-size: var(--fontSizeS);
+    margin-bottom: var(--gap1);
+}
+
+.orphansIcon {
+    flex: 0 0 auto;
+    width: 16rem;
+    height: 16rem;
+    --iconColor: var(--warningColor);
+}
