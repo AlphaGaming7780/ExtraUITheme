@@ -15,7 +15,7 @@ ExtraUITheme lets you customize the look of the Cities: Skylines II UI directly 
 Requires [ExtraLib](https://mods.paradoxplaza.com/mods/75724/Windows) as a dependency.
 
 # Features
-* Simple mode — curated, grouped variables (panel colors, text colors, accents, borders, ...) for quick theming without digging through the full list.
+* Simple mode — the game's colors grouped into a short palette: change one color and every related variable follows. Hover a color to see where it's used in the game UI.
 * Advanced mode — every :root-overridable variable exposed as a flat, searchable list.
 * Built-in presets — ready-made themes you can apply instantly.
 * Custom themes — fork, rename, clone, and save your own themes.
@@ -63,14 +63,22 @@ Thanks to everyone who helped along the way during development, and a special th
 	<!--<ChangeLog Value="" />-->
 	<ChangeLog>
 ### Features
-* Clone themes — duplicate any theme (built-in or custom) into a new editable copy in one click.
-* Undo/Redo — Ctrl+Z / Ctrl+Y to step back and forward through your theme edits, with rebindable keys in Settings.
-* Shared themes — automatically load themes bundled by other mods, in addition to your own.
-* New `.eutjson` theme file format, replacing plain `.json` — existing theme files are migrated automatically, no action needed.
+* New Simple mode — the game's colors are grouped into a short palette (accent, backgrounds, texts, states...). Change one color and every related variable follows, keeping its lighter/darker shade and transparency.
+  * Open a palette card to see its variables, each with a link to it in Advanced mode.
+  * Variables edited by hand in Advanced mode keep their value. Click their lock to make them follow the palette again.
+  * Palettes follow game updates: colors are recalculated automatically against the new game UI.
+* Identify — hover a palette, one of its variables or a color in Advanced mode, and the matching parts of the game UI blink.
+* Theme check — a banner shows the variables of a theme that no longer match the game (removed, broken reference, wrong value type...). "Clean up" removes them in one click, and Undo brings them back.
+* Import shows the same check before importing, and refuses themes made with a newer version of the mod.
+* Undo/Redo covers palette changes and Clean up, one step each.
 
-### Localisation
-* French : 90% → 100%
-* Spanish : 100% → 86%
+### Fixes
+* Themes now apply everywhere in the modern UI (some menu, tooltip and header colors kept the game value).
+* Advanced mode shows the default values of the interface you use (modern or legacy).
+* Better performance: dragging or resizing the panel and editing colors no longer drops FPS.
+
+### Other
+* Theme files are now versioned. Older themes are upgraded when saved, with a backup of the original file.
 	</ChangeLog>
 	<!--External link, can be set multiple times. supported types are "discord", "github", "youtube", "twitch", "x", "paypal", "patreon", "buymeacoffee", "kofi", "crowdin", "gitlab", "gofundme"-->
 	<ExternalLink Type="crowdin" Url="https://crowdin.com/project/extrauitheme" />
