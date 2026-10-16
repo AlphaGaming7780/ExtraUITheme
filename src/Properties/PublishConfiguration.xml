@@ -71,6 +71,8 @@ Thanks to everyone who helped along the way during development, and a special th
 * Theme check — a banner shows the variables of a theme that no longer match the game (removed, broken reference, wrong value type...). "Clean up" removes them in one click, and Undo brings them back.
 * Import shows the same check before importing, and refuses themes made with a newer version of the mod.
 * Undo/Redo covers palette changes and Clean up, one step each.
+* New shortcut to open or close the panel (Ctrl+Shift+T by default, rebindable in Settings).
+* The panel button is now hidden in the main menu and the editor by default. Turn it back on in Settings; the shortcut opens the panel either way.
 
 ### Fixes
 * Themes now apply everywhere in the modern UI (some menu, tooltip and header colors kept the game value).

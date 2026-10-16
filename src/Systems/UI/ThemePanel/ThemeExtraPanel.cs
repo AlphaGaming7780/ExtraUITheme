@@ -3,6 +3,7 @@ using ExtraLib.Systems.UI.ExtraPanels;
 using ExtraUITheme.Helpers;
 using ExtraUITheme.Helpers.ThemeFormat;
 using Game;
+using Game.SceneFlow;
 using Game.Input;
 using System.Collections.Generic;
 using Unity.Mathematics;
@@ -12,6 +13,13 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
     internal partial class ThemeExtraPanel : ExtraPanelBase
     {
         public override GameMode gameMode => GameMode.Game | GameMode.Editor | GameMode.MainMenu;
+
+        protected override bool m_ShowInSelector => GameManager.instance.gameMode switch
+        {
+            GameMode.MainMenu => EUT.m_Setting.ShowInMainMenu,
+            GameMode.Editor => EUT.m_Setting.ShowInEditor,
+            _ => true,
+        };
 
         public override string Icon => Icons.ThemePanel;
 
@@ -29,7 +37,7 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
         private readonly List<HistoryEntry> m_UndoStack = new();
         private readonly List<HistoryEntry> m_RedoStack = new();
 
-        private ProxyAction m_UndoAction, m_RedoAction;
+        private ProxyAction m_ToggleAction, m_UndoAction, m_RedoAction;
         private EventBinding<int> m_OnUndoShortcut, m_OnRedoShortcut;
         private EventBinding<ImportReport> m_OnImportAnalyzed;
 
@@ -69,6 +77,8 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
             AddBinding(m_OnRedoShortcut = new EventBinding<int>("EUT", "OnRedoShortcut"));
             AddBinding(m_OnImportAnalyzed = new EventBinding<ImportReport>("EUT", "OnImportAnalyzed", new ValueWriter<ImportReport>()));
 
+            m_ToggleAction = EUT.m_Setting.GetAction(EUT.m_Setting.TogglePanelBinding.actionName);
+            m_ToggleAction.shouldBeEnabled = true;
             m_UndoAction = EUT.m_Setting.GetAction(EUT.m_Setting.UndoBinding.actionName);
             m_RedoAction = EUT.m_Setting.GetAction(EUT.m_Setting.RedoBinding.actionName);
             m_UndoAction.shouldBeEnabled = true;
@@ -79,10 +89,23 @@ namespace ExtraUITheme.Systems.UI.ThemePanel
 
         protected override void OnDestroy()
         {
+            m_ToggleAction.shouldBeEnabled = false;
             m_UndoAction.shouldBeEnabled = false;
             m_RedoAction.shouldBeEnabled = false;
             base.OnDestroy();
         }
+
+        // Runs every frame in the valid game modes, even while the panel is closed.
+        protected override void OnUpdate()
+        {
+            base.OnUpdate();
+            if (!m_ToggleAction.WasPressedThisFrame()) return;
+            bool open = !Visible();
+            SetVisible(open);
+            if (open) SetExpanded(true);
+        }
+
+        internal void RefreshSelector() => m_ExtraPanelsUISystem?.RequestBindingUpdate();
 
         protected override void OnPreProcess()
         {

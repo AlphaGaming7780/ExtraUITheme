@@ -6,7 +6,15 @@
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Reload themes",
     "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Re-scans your custom theme files on disk - use this after adding or editing one without restarting the game.",
 
+    "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Panel]": "Panel",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ShowInMainMenu]": "Show in the main menu",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ShowInMainMenu]": "Shows the theme panel button in the main menu. The keyboard shortcut opens the panel either way.",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ShowInEditor]": "Show in the editor",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ShowInEditor]": "Shows the theme panel button in the editor. The keyboard shortcut opens the panel either way.",
+
     "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.KeyBinding]": "Key bindings",
+    "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.TogglePanelBinding]": "Open / close the panel",
+    "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.TogglePanelBinding]": "Opens or closes the theme panel.",
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Undo",
     "Options.OPTION_DESCRIPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.UndoBinding]": "Undoes the last change made in the theme panel.",
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.RedoBinding]": "Redo",
