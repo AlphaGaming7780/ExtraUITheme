@@ -72,7 +72,7 @@ Thanks to everyone who helped along the way during development, and a special th
 * Import shows the same check before importing, and refuses themes made with a newer version of the mod.
 * Undo/Redo covers palette changes and Clean up, one step each.
 * New shortcut to open or close the panel (Ctrl+Shift+T by default, rebindable in Settings).
-* The panel button is now hidden in the main menu and the editor by default. Turn it back on in Settings; the shortcut opens the panel either way.
+* The panel can now be opened from the main menu and the editor with the shortcut. You can also show its button there from the mod's Settings.
 
 ### Fixes
 * Themes now apply everywhere in the modern UI (some menu, tooltip and header colors kept the game value).
