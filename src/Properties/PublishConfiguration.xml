@@ -15,13 +15,16 @@ ExtraUITheme lets you customize the look of the Cities: Skylines II UI directly 
 Requires [ExtraLib](https://mods.paradoxplaza.com/mods/75724/Windows) as a dependency.
 
 # Features
-* Simple mode — the game's colors grouped into a short palette: change one color and every related variable follows. Hover a color to see where it's used in the game UI.
-* Advanced mode — every :root-overridable variable exposed as a flat, searchable list.
+* Simple mode — the game's colors grouped into a short palette: change one color and every related variable follows, keeping its shade and transparency. Palettes follow game updates automatically.
+* Advanced mode — every :root-overridable variable exposed as a flat, searchable list. Variables edited by hand keep their value over the palette.
+* Identify — hover a palette, a variable or a color, and the matching parts of the game UI blink.
+* Theme check — see the variables of a theme that no longer match the game, and clean them up in one click.
 * Built-in presets — ready-made themes you can apply instantly.
 * Custom themes — fork, rename, clone, and save your own themes.
 * Undo / Redo — step back and forward through your theme edits with Ctrl+Z / Ctrl+Y, rebindable in Settings.
 * Shared themes — automatically load themes bundled by other mods, alongside your own.
-* Import / Export — share themes as plain JSON.
+* Import / Export — share themes as plain JSON, checked against the game before importing.
+* Everywhere — open the panel in game, in the main menu or in the editor with Ctrl+Shift+T (rebindable), and choose where its button shows in Settings.
 
 # Translation
 ⚠️ This mod uses Crowdin so there may be inconsistencies with translations due to translations from different translators ⚠️
@@ -52,7 +55,7 @@ Thanks to everyone who helped along the way during development, and a special th
 	<!--Link to the forum post where the mod can be discussed-->
 	<ForumLink Value="" />
 	<!--Version of the mod-->
-	<ModVersion Value="1.1" />
+	<ModVersion Value="1.2" />
 	<!--Recommended version of the base game to use the mod-->
 	<GameVersion Value="1.6.*" />
 	<!--Dependency for the mod, can be set multiple times-->
