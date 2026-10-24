@@ -36,7 +36,7 @@ Requires [ExtraLib](https://mods.paradoxplaza.com/mods/75724/Windows) as a depen
 - ❌Portuguese 0%
 - ❌Portuguese, Brazilian 0%
 - ❌Russian 0%
-- ⚠️Spanish 86% : elGendo87
+- ⚠️Spanish 88% : elGendo87
 
 Help translate: https://crowdin.com/project/extrauitheme
 
@@ -81,6 +81,9 @@ Thanks to everyone who helped along the way during development, and a special th
 
 ### Other
 * Theme files are now versioned. Older themes are upgraded when saved, with a backup of the original file.
+
+### Localisation
+* Spanish : 86% → 88%
 	</ChangeLog>
 	<!--External link, can be set multiple times. supported types are "discord", "github", "youtube", "twitch", "x", "paypal", "patreon", "buymeacoffee", "kofi", "crowdin", "gitlab", "gofundme"-->
 	<ExternalLink Type="crowdin" Url="https://crowdin.com/project/extrauitheme" />
