@@ -1,0 +1,347 @@
+{
+    "Version": 2,
+    "Name": "HalloweenPumpkin",
+    "Overrides": {
+        "--focusedColor": "#ff7a1a",
+        "--accentColorLight": "#ffaf87",
+        "--accentColorNormal": "#ff7a1a",
+        "--menuControlBorder": "#bf724a",
+        "--accentColorDark": "#af4700",
+        "--commonCyan": "#b24700",
+        "--selectedColor": "#af4700",
+        "--highlightBrightBlue": "#fc7803",
+        "--highlightLightBlue": "#f1a684",
+        "--gradientHighlightStart": "#fc7803",
+        "--keyboardHintColor": "rgba(161, 52, 0, 0.2)",
+        "--selectedColorDark": "#853400",
+        "--focusedColorDark": "#f76600",
+        "--selectableColor-hover": "#642500",
+        "--ifsPageButtonColor-hover": "#ca5200",
+        "--ifsPageButtonColor-pressed": "#e45d00",
+        "--accentColorLightHighlight": "rgba(255, 175, 135, 0.502)",
+        "--selectedColor-hover": "#cc5500",
+        "--accentColorDark-focused": "#ff6a00",
+        "--gradientHighlightEnd": "#a14600",
+        "--selectedColor-active": "#d95b00",
+        "--accentColorDark-hover": "#dd5d00",
+        "--accentColorDark-pressed": "#f08346",
+        "--accentColorNormal-hover": "#ff9660",
+        "--accentColorNormal-pressed": "#fdc5ad",
+        "--commonBlack": "#0a050f",
+        "--menuText1Inverted": "rgba(10, 3, 17, 0.8)",
+        "--menuPanel1": "rgba(5, 2, 10, 0.3)",
+        "--accentColorDarker": "#301c3f",
+        "--normalTextColorDark": "rgba(10, 5, 15, 0.8)",
+        "--gradientDarkBlueStart": "rgba(58, 43, 71, var(--uiOpacity))",
+        "--normalTextColorDarkDimmest": "rgba(10, 5, 15, 0.2)",
+        "--sectionBorderColor": "rgba(59, 39, 75, 0.7)",
+        "--focusedTextColor": "rgba(10, 5, 15, 0.7)",
+        "--focusedTextColorDim": "rgba(10, 5, 15, 0.6)",
+        "--consoleToolbarFieldColor": "#0a050f",
+        "--normalTextColorDarkDimmer": "rgba(10, 5, 15, 0.4)",
+        "--panelColorNormal": "rgba(42, 25, 56, var(--panelOpacityNormal))",
+        "--menuText2Inverted": "rgba(10, 3, 17, 0.6)",
+        "--commonDarkBlue": "#20142a",
+        "--normalTextColorDarkDim": "rgba(10, 5, 15, 0.6)",
+        "--menuBorderColor2Inverted": "rgba(10, 3, 17, 0.5)",
+        "--tooltipColor": "#0a050f",
+        "--gradientDarkerBlueStart": "rgba(24, 14, 32, var(--gradientOpacity))",
+        "--toolbarBottomBgColor": "#180e20",
+        "--focusedTextColorDimmer": "rgba(10, 5, 15, 0.5)",
+        "--focusedTextColorDimmest": "rgba(10, 5, 15, 0.4)",
+        "--focusedTextColorDark": "#0a050f",
+        "--focusedTextColorDarkDim": "rgba(10, 5, 15, 0.9)",
+        "--focusedTextColorDarkDimmer": "rgba(10, 5, 15, 0.8)",
+        "--focusedTextColorDarkDimmest": "rgba(10, 5, 15, 0.7)",
+        "--focusedTextColorDisabled": "rgba(10, 5, 15, 0.35)",
+        "--selectedTextColor": "rgba(10, 5, 15, 0.6)",
+        "--selectedTextColorDim": "rgba(10, 5, 15, 0.5)",
+        "--selectedTextColorDimmer": "rgba(10, 5, 15, 0.4)",
+        "--selectedTextColorDimmest": "rgba(10, 5, 15, 0.3)",
+        "--selectedTextColorDark": "rgba(10, 5, 15, 0.9)",
+        "--selectedTextColorDarkDim": "rgba(10, 5, 15, 0.8)",
+        "--selectedTextColorDarkDimmer": "rgba(10, 5, 15, 0.7)",
+        "--selectedTextColorDarkDimmest": "rgba(10, 5, 15, 0.6)",
+        "--selectedTextColorDisabled": "rgba(10, 5, 15, 0.3)",
+        "--sectionBackgroundColorLight": "rgba(47, 29, 61, 0.4)",
+        "--sectionHeaderColor": "rgba(32, 20, 42, 0.9)",
+        "--menuPanel3": "rgba(5, 2, 10, 0.8)",
+        "--panelColorDark-hover": "rgba(21, 10, 31, var(--panelOpacityDark))",
+        "--panelColorDark-active": "rgba(24, 12, 34, var(--panelOpacityDark))",
+        "--sectionHeaderColorLight": "rgba(23, 8, 35, 0.5)",
+        "--menuActiveColorInverted": "rgba(10, 3, 17, 0.2)",
+        "--ifsPanelImageGradientStart": "#362345",
+        "--panelButtonColor-hover": "#2d1f39",
+        "--panelButtonColor-active": "#392947",
+        "--panelButtonColor-focused": "#2d1f39",
+        "--menuBorderColor1Inverted": "rgba(10, 3, 17, 0.1)",
+        "--gradientDarkBlueEnd": "rgba(40, 25, 52, var(--uiOpacity))",
+        "--accentColorDarker-hover": "#482e5d",
+        "--accentColorDarker-pressed": "#6d4c88",
+        "--gradientDarkBlueMiddle": "rgba(44, 30, 56, var(--uiOpacity))",
+        "--gradientDarkerBlueEnd": "rgba(3, 2, 6, var(--gradientOpacity))",
+        "--ifsPanelImageGradientEnd": "#291936",
+        "--normalTextColorDisabled": "#c9a7e0",
+        "--toolbarButtonColor-hover": "rgba(201, 167, 224, 0.4)",
+        "--normalTextColorLocked": "#c9a7e0",
+        "--commonGray": "#9570a8",
+        "--commonTransparentGray": "rgba(149, 112, 168, 0.2)",
+        "--focusedTextColorLocked": "rgba(201, 167, 224, 0.4)",
+        "--selectedTextColorLocked": "rgba(201, 167, 224, 0.7)",
+        "--toolbarButtonColor-pressed": "rgba(201, 167, 224, 0.6)",
+        "--toolbarButtonColor-disabled": "rgba(201, 167, 224, 0.2)",
+        "--normalTextColorDim": "#fff1dc",
+        "--normalTextColor": "#fdeacc",
+        "--dividerColor": "rgba(255, 241, 220, 0.1)",
+        "--commonWhite": "#fdeacc",
+        "--menuText1Normal": "rgba(253, 234, 204, 0.8)",
+        "--hoverColor": "rgba(255, 241, 220, 0.1)",
+        "--menuHoverColor": "rgba(255, 241, 220, 0.1)",
+        "--menuActiveColor": "rgba(255, 241, 220, 0.2)",
+        "--menuBorderColor2": "rgba(255, 241, 220, 0.5)",
+        "--menuText2Normal": "rgba(253, 234, 204, 0.6)",
+        "--activeColor": "rgba(255, 241, 220, 0.2)",
+        "--normalTextColorDimmer": "#fff1dc",
+        "--accentColorLighter": "#fbe4c3",
+        "--menuBorderColor1": "rgba(255, 241, 220, 0.1)",
+        "--menuFocusedColor": "rgba(255, 241, 220, 0.75)",
+        "--normalTextColorDimmest": "#f3e1c7",
+        "--hoverColorBright": "rgba(255, 241, 220, 0.15)",
+        "--commonLightGrey": "#ecdec9",
+        "--activeColorBright": "rgba(255, 241, 220, 0.3)",
+        "--toolbarFieldBorderColor": "rgba(255, 241, 220, 0.08)",
+        "--menuSelectedColor": "rgba(255, 241, 220, 0.9)",
+        "--focusedTextColorHighlight": "#fdeacc",
+        "--focusedTextColorHighlightDim": "rgba(253, 234, 204, 0.9)",
+        "--focusedTextColorHighlightDimmer": "rgba(253, 234, 204, 0.8)",
+        "--focusedTextColorHighlightDimmest": "rgba(253, 234, 204, 0.7)",
+        "--selectedTextColorHighlight": "rgba(253, 234, 204, 0.9)",
+        "--selectedTextColorHighlightDim": "rgba(253, 234, 204, 0.8)",
+        "--selectedTextColorHighlightDimmer": "rgba(253, 234, 204, 0.7)",
+        "--selectedTextColorHighlightDimmest": "rgba(253, 234, 204, 0.6)",
+        "--iconColor": "#fff1dc",
+        "--menuActiveColorBright": "#fff1dc",
+        "--accentColorLightest": "#fff1dc",
+        "--sliderThumbColor": "#ddcfbb",
+        "--menuHoverColorBright": "rgba(255, 241, 220, 0.15)",
+        "--hoverColorDark": "rgba(255, 241, 220, 0.05)",
+        "--progressTextColor": "rgba(255, 241, 220, 0.8)",
+        "--symbolColor": "rgba(255, 241, 220, 0.8)",
+        "--sliderRangeColorFocused": "#fff1dc",
+        "--menuSelectedColorSubtle": "rgba(255, 241, 220, 0.3)",
+        "--activeColorDark": "rgba(255, 241, 220, 0.3)",
+        "--menuText1Disabled": "rgba(110, 90, 122, 0.8)",
+        "--disabledColor": "rgba(103, 83, 115, 0.6)",
+        "--toolbarFieldColor-active": "rgba(77, 58, 89, 0.45)",
+        "--menuControl2": "#5c4867",
+        "--sliderRangeColorDisabled": "#6e5a7a",
+        "--gradientGreyMiddle": "#7d698a",
+        "--toolbarFieldColor-hover": "rgba(43, 34, 51, 0.45)",
+        "--sectionHeaderLockedColor": "rgba(43, 34, 51, 0.5)",
+        "--sectionBackgroundLockedColor": "rgba(52, 43, 60, 0.5)",
+        "--requirementsTitleColor": "#211828",
+        "--menuDisabledColor": "rgba(37, 28, 45, 0.75)",
+        "--menuPanel2": "rgba(20, 11, 27, 0.3)",
+        "--menuControl1--hover": "#1d1424",
+        "--menuControl1--pressed": "#362d3e",
+        "--menuControl1": "#0d0810",
+        "--dividerColorInverted": "rgba(17, 7, 10, 0.1)",
+        "--sliderThumbColorDisabled": "#a090ad",
+        "--gradientGreyEdge": "#9686a3",
+        "--buttonStrokeGrey": "#a898b5",
+        "--menuBorderTableColor": "#8d75a0",
+        "--chartBorderColor": "#c9a7e0",
+        "--editorFocusedColor": "#9be22d",
+        "--editorFocusedColorDark": "#1c3e00",
+        "--pausePanelColorDark": "rgba(58, 13, 20, var(--panelOpacityDark))",
+        "--highlightGreen": "#9be22d",
+        "--buttonStrokeLightGreen": "#c0ffa0",
+        "--gradientLightGreenMiddle": "#9ad000",
+        "--gradientLightGreenEdge": "#7ce666",
+        "--gradientGreenMiddle": "#75b000",
+        "--gradientGreenEdge": "#66bc4f",
+        "--buttonStrokeGreen": "#95e559",
+        "--dialogButtonYesColor-hover": "#c1f7a1",
+        "--dialogButtonYesColor-active": "#a1e753",
+        "--dialogButtonYesColor-focused": "#b5f288",
+        "--city-income-color": "rgba(155, 226, 45, 0.8)",
+        "--surplus-color": "#9be22d",
+        "--positiveColor": "#9be22d",
+        "--negativeColor": "#ff4a4a",
+        "--buttonStrokeRed": "#ff5d7e",
+        "--gradientLightRedMiddle": "#ff4069",
+        "--gradientRedMiddle": "#eb2755",
+        "--highlightWarningRed": "#d01c3c",
+        "--highlightWarningLightRed": "#f2556b",
+        "--buttonStrokeLightRed": "#ff9a92",
+        "--gradientLightRedEdge": "#ff3051",
+        "--dialogButtonNoColor-focused": "#e3475e",
+        "--gradientRedEdge": "#dc2541",
+        "--dialogButtonNoColor-hover": "#e95f71",
+        "--dialogButtonNoColor-active": "#df2a48",
+        "--city-expenses-color": "rgba(242, 85, 107, 0.8)",
+        "--loan-interest-color": "#d01c3c",
+        "--highlightYellow": "#ffc93c",
+        "--warningColor": "#ff9a2e"
+    },
+    "Manual": [],
+    "Palette": [
+        {
+            "From": "rgb(75,195,241)",
+            "Anchors": [
+                "--focusedColor",
+                "--accentColorLight",
+                "--accentColorNormal"
+            ],
+            "To": "rgb(255,122,26)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(20,27,34)",
+            "Anchors": [
+                "--commonBlack",
+                "--menuText1Inverted",
+                "--menuPanel1"
+            ],
+            "To": "rgb(10,5,15)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(167,198,209)",
+            "Anchors": [
+                "--normalTextColorDisabled",
+                "--commonGray",
+                "--commonTransparentGray"
+            ],
+            "To": "rgb(201,167,224)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(255,255,255)",
+            "Anchors": [
+                "--normalTextColorDim",
+                "--normalTextColor",
+                "--dividerColor"
+            ],
+            "To": "rgb(255,241,220)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(102,102,102)",
+            "Anchors": [
+                "--menuText1Disabled",
+                "--disabledColor",
+                "--menuControl2"
+            ],
+            "To": "rgb(110,90,122)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(40,40,40)",
+            "Anchors": [
+                "--toolbarFieldColor-hover",
+                "--requirementsTitleColor",
+                "--menuPanel2"
+            ],
+            "To": "rgb(43,34,51)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(0,0,0)",
+            "Anchors": [
+                "--menuControl1",
+                "--dividerColorInverted"
+            ],
+            "To": "rgb(13,8,16)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(153,153,153)",
+            "Anchors": [
+                "--sliderThumbColorDisabled",
+                "--gradientGreyEdge",
+                "--buttonStrokeGrey"
+            ],
+            "To": "rgb(160,144,173)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(142,165,211)",
+            "Anchors": [
+                "--chartBorderColor"
+            ],
+            "To": "rgb(201,167,224)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(199,255,101)",
+            "Anchors": [
+                "--editorFocusedColor",
+                "--editorFocusedColorDark"
+            ],
+            "To": "rgb(155,226,45)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(67,25,30)",
+            "Anchors": [
+                "--pausePanelColorDark"
+            ],
+            "To": "rgb(58,13,20)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(65,216,128)",
+            "Anchors": [
+                "--highlightGreen",
+                "--buttonStrokeLightGreen",
+                "--gradientLightGreenEdge"
+            ],
+            "To": "rgb(155,226,45)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(139,219,70)",
+            "Anchors": [
+                "--positiveColor"
+            ],
+            "To": "rgb(155,226,45)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(233,95,74)",
+            "Anchors": [
+                "--negativeColor",
+                "--buttonStrokeRed"
+            ],
+            "To": "rgb(255,74,74)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(190,50,85)",
+            "Anchors": [
+                "--highlightWarningRed",
+                "--highlightWarningLightRed",
+                "--buttonStrokeLightRed"
+            ],
+            "To": "rgb(208,28,60)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(255,203,0)",
+            "Anchors": [
+                "--highlightYellow"
+            ],
+            "To": "rgb(255,201,60)",
+            "FollowAccentHue": false
+        },
+        {
+            "From": "rgb(255,164,45)",
+            "Anchors": [
+                "--warningColor"
+            ],
+            "To": "rgb(255,154,46)",
+            "FollowAccentHue": false
+        }
+    ]
+}

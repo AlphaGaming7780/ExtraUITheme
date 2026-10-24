@@ -13,7 +13,9 @@ namespace ExtraUITheme.Helpers
     internal static class ThemeManager
     {
         internal const string DefaultThemeName = "Default";
-        private static readonly string[] BuiltInPresetNames = { "BrightBlue", "DarkGreyOrange" };
+        // Embedded file names under embedded/Themes; the theme name comes from the file's Name field.
+        private static readonly string[] BuiltInPresetFiles = { "BrightBlueV2", "DarkGreyOrangeV2" };
+        private static readonly HashSet<string> m_BuiltInNames = new HashSet<string> { DefaultThemeName };
 
         private const string PreferredExtension = ".eutjson";
         private const string LegacyExtension = ".json";
@@ -117,7 +119,7 @@ namespace ExtraUITheme.Helpers
         internal static Theme GetTheme(string name) =>
             name != null && m_Themes.TryGetValue(name, out Theme theme) ? theme : null;
 
-        internal static bool IsBuiltInName(string name) => name == DefaultThemeName || BuiltInPresetNames.Contains(name);
+        internal static bool IsBuiltInName(string name) => name != null && m_BuiltInNames.Contains(name);
 
         private static List<Theme> LoadBuiltInThemes()
         {
@@ -129,9 +131,9 @@ namespace ExtraUITheme.Helpers
             Assembly assembly = Assembly.GetExecutingAssembly();
             string namespaceName = assembly.GetName().Name;
 
-            foreach (string presetName in BuiltInPresetNames)
+            foreach (string presetFile in BuiltInPresetFiles)
             {
-                string resourceName = $"{namespaceName}.embedded.Themes.{presetName}V2.json";
+                string resourceName = $"{namespaceName}.embedded.Themes.{presetFile}.json";
                 try
                 {
                     using Stream stream = assembly.GetManifestResourceStream(resourceName);
@@ -143,16 +145,17 @@ namespace ExtraUITheme.Helpers
                     using StreamReader reader = new StreamReader(stream);
                     if (ThemeSerializer.Read(reader.ReadToEnd(), out Theme theme, out _) != ThemeReadStatus.Ok)
                     {
-                        EUT.Logger.Error($"Embedded theme '{presetName}' could not be read.");
+                        EUT.Logger.Error($"Embedded theme '{presetFile}' could not be read.");
                         continue;
                     }
-                    theme.Name = presetName;
+                    if (string.IsNullOrWhiteSpace(theme.Name)) theme.Name = presetFile;
                     theme.IsBuiltIn = true;
+                    m_BuiltInNames.Add(theme.Name);
                     themes.Add(theme);
                 }
                 catch (Exception ex)
                 {
-                    EUT.Logger.Error($"Failed to load embedded theme '{presetName}': {ex}");
+                    EUT.Logger.Error($"Failed to load embedded theme '{presetFile}': {ex}");
                 }
             }
 
