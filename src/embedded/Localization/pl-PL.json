@@ -1,5 +1,6 @@
 {
     "ExtraPanelHeaderName[ExtraUITheme.Systems.UI.ThemePanel.ThemeExtraPanel]": "ExtraUITheme",
+    "ExtraPanelTooltip[ExtraUITheme.Systems.UI.ThemePanel.ThemeExtraPanel]": "Open the Extra UI Theme panel.",
     "Options.SECTION[ExtraUITheme.ExtraUITheme.EUT]": "Extra UI Theme",
     "Options.GROUP[ExtraUITheme.ExtraUITheme.EUT.Themes]": "Themes",
     "Options.OPTION[ExtraUITheme.ExtraUITheme.EUT.Setting.ReloadThemes]": "Reload themes",
